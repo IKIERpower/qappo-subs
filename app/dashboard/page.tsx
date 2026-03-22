@@ -90,22 +90,23 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
-      <div className="p-8 max-w-[1400px] space-y-10">
+      <div className="p-4 md:p-8 max-w-[1400px] space-y-6 md:space-y-10">
 
         {/* KPI Row */}
-        <section className="grid grid-cols-3 gap-6 animate-fade-up">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 animate-fade-up">
           {/* Monthly Burn */}
-          <div className="bg-surface-container-lowest border border-outline-variant/15 p-8 flex flex-col justify-between min-h-[180px] group hover:border-outline-variant/40 transition-all duration-200">
-            <div className="space-y-2">
+          {/* Monthly Burn */}
+          <div className="bg-surface-container-lowest border border-outline-variant/15 p-5 md:p-8 flex flex-col justify-between min-h-[100px] md:min-h-[180px] group hover:border-outline-variant/40 transition-all duration-200">
+            <div>
               <span className="font-label text-[10px] font-medium uppercase tracking-widest text-on-surface-variant">Monthly Burn</span>
-              <div className="flex items-baseline gap-2">
-                <span className="font-label text-4xl font-bold tracking-tighter tabular-nums text-on-surface">
+              <div className="flex items-baseline gap-2 mt-1">
+                <span className="font-label text-2xl md:text-4xl font-bold tracking-tighter tabular-nums text-on-surface">
                   {monthlyBurn.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
                 <span className="font-label text-sm text-on-surface-variant font-medium">PLN</span>
               </div>
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mt-3 md:mt-0">
               <span className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest">/ month recurring</span>
               <span className="flex items-center gap-1 font-label text-xs font-bold text-tertiary">
                 <span className="material-symbols-outlined text-[13px]">arrow_upward</span>4.2%
@@ -114,15 +115,15 @@ export default function DashboardPage() {
           </div>
 
           {/* Active Subscriptions */}
-          <div className="bg-surface-container-low p-8 flex flex-col justify-between min-h-[180px] hover:bg-surface-container transition-all duration-200">
-            <div className="space-y-2">
+          <div className="bg-surface-container-low p-5 md:p-8 flex flex-col justify-between min-h-[100px] md:min-h-[180px] hover:bg-surface-container transition-all duration-200">
+            <div>
               <span className="font-label text-[10px] font-medium uppercase tracking-widest text-on-surface-variant">Active Licenses</span>
-              <div className="flex items-baseline gap-2">
-                <span className="font-label text-4xl font-bold tracking-tighter tabular-nums text-on-surface">{activeSubs.length}</span>
+              <div className="flex items-baseline gap-2 mt-1">
+                <span className="font-label text-2xl md:text-4xl font-bold tracking-tighter tabular-nums text-on-surface">{activeSubs.length}</span>
                 <span className="font-label text-sm text-on-surface-variant">subscriptions</span>
               </div>
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mt-3 md:mt-0">
               <span className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest">currently active</span>
               <span className="flex items-center gap-1 font-label text-xs font-bold text-secondary">
                 <span className="material-symbols-outlined text-[13px]">check_circle</span>nominal
@@ -131,17 +132,17 @@ export default function DashboardPage() {
           </div>
 
           {/* Annual Projection */}
-          <div className="bg-surface-container-lowest border border-outline-variant/15 p-8 flex flex-col justify-between min-h-[180px] hover:border-outline-variant/40 transition-all duration-200">
-            <div className="space-y-2">
+          <div className="bg-surface-container-lowest border border-outline-variant/15 p-5 md:p-8 flex flex-col justify-between min-h-[100px] md:min-h-[180px] hover:border-outline-variant/40 transition-all duration-200">
+            <div>
               <span className="font-label text-[10px] font-medium uppercase tracking-widest text-on-surface-variant">Annual Projection</span>
-              <div className="flex items-baseline gap-2">
-                <span className="font-label text-4xl font-bold tracking-tighter tabular-nums text-on-surface">
+              <div className="flex items-baseline gap-2 mt-1">
+                <span className="font-label text-2xl md:text-4xl font-bold tracking-tighter tabular-nums text-on-surface">
                   {(annualProjection / 1000).toFixed(1)}K
                 </span>
                 <span className="font-label text-sm text-on-surface-variant font-medium">PLN</span>
               </div>
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mt-3 md:mt-0">
               <span className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest">12-month outflow</span>
               <Link href="/analytics" className="font-label text-[10px] uppercase tracking-wider text-on-surface-variant hover:text-on-surface flex items-center gap-1 transition-colors">
                 Forecast <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
@@ -151,7 +152,7 @@ export default function DashboardPage() {
         </section>
 
         {/* Spend Trend + Category Split */}
-        <section className="grid grid-cols-[1fr_320px] gap-6 animate-fade-up delay-100">
+        <section className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-4 md:gap-6 animate-fade-up delay-100">
           {/* Sparkline chart */}
           <div className="bg-surface-container-lowest border border-outline-variant/15 p-8">
             <div className="flex items-end justify-between mb-8">

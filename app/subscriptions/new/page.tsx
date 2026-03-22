@@ -114,7 +114,7 @@ export default function NewSubscriptionPage() {
 
   return (
     <AppLayout>
-      <div className="max-w-2xl mx-auto px-8 py-10 animate-fade-up">
+      <div className="max-w-2xl mx-auto px-4 lg:px-8 py-6 lg:py-10 animate-fade-up">
         {/* Header */}
         <div className="flex items-center gap-3 mb-10">
           <Link href="/subscriptions" className="font-label text-xs text-on-surface-variant hover:text-on-surface flex items-center gap-1 transition-colors">

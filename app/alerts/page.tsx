@@ -1,307 +1,338 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase, Alert } from '@/app/lib/supabase'
+import { supabase, Subscription } from '@/app/lib/supabase'
 import { useAuth } from '@/app/lib/AuthContext'
 import AppLayout from '@/app/components/AppLayout'
 import clsx from 'clsx'
+import {
+  ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer, Cell, PieChart, Pie, Legend
+} from 'recharts'
 
-const ALERT_ICONS: Record<string, string> = {
-  renewal: 'event_upcoming',
-  budget: 'account_balance_wallet',
-  duplicate: 'content_copy',
+const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+const CAT_COLORS: Record<string, string> = {
+  'Entertainment': '#006D42',
+  'Cloud/Hosting': '#1D4ED8',
+  'Dev Tools': '#374151',
+  'Development': '#7C3AED',
+  'Utilities': '#7D0015',
+  'Productivity': '#B45309',
+  'Other': '#9CA3AF',
 }
-const ALERT_ACCENT: Record<string, string> = {
-  renewal: 'text-secondary border-secondary/20 bg-secondary/5',
-  budget: 'text-tertiary border-tertiary/20 bg-tertiary/5',
-  duplicate: 'text-on-surface-variant border-outline-variant/20 bg-surface-container',
+
+function monthlyEquivalent(sub: Subscription): number {
+  if (sub.status !== 'active') return 0
+  if (sub.billing_cycle === 'yearly') return sub.cost / 12
+  return sub.cost
 }
 
-const DEFAULT_ALERTS = [
-  { type: 'renewal', threshold_value: 7, threshold_unit: 'days', enabled: true, label: 'Renewal Reminder', description: 'Alert 7 days before any subscription renews' },
-  { type: 'budget', threshold_value: 500, threshold_unit: 'PLN', enabled: true, label: 'Monthly Budget Cap', description: 'Alert when monthly spend exceeds threshold' },
-  { type: 'duplicate', threshold_value: 24, threshold_unit: 'hours', enabled: false, label: 'Duplicate Charge', description: 'Alert for identical charges within window' },
-]
+interface Scenario {
+  id: string
+  label: string
+  desc: string
+  checked: boolean
+}
 
-export default function AlertsPage() {
+export default function AnalyticsPage() {
   const { user } = useAuth()
-  const [alerts, setAlerts] = useState<Alert[]>([])
+  const [subs, setSubs] = useState<Subscription[]>([])
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState<string | null>(null)
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [editValue, setEditValue] = useState('')
-  const [seedLoading, setSeedLoading] = useState(false)
+  const [scenarios, setScenarios] = useState<Scenario[]>([
+    { id: 'paused', label: 'Include Paused Subscriptions', desc: 'Recalculates burn as if all paused services reactivate.', checked: false },
+    { id: 'inflation', label: 'Simulate +10% Inflation', desc: 'Applies a 10% cost increase across all active records.', checked: false },
+    { id: 'no-annual', label: 'Exclude Annual Renewals', desc: 'Isolates strict monthly recurring outflow only.', checked: false },
+  ])
 
   useEffect(() => {
-    if (user) load()
+    if (!user) return
+    async function load() {
+      const { data } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', user!.id)
+      setSubs(data ?? [])
+      setLoading(false)
+    }
+    load()
   }, [user])
 
-  async function load() {
-    setLoading(true)
-    const { data } = await supabase
-      .from('alerts')
-      .select('*')
-      .eq('user_id', user!.id)
-      .order('created_at')
-    setAlerts(data ?? [])
-    setLoading(false)
+  function toggleScenario(id: string) {
+    setScenarios(prev => prev.map(s => s.id === id ? { ...s, checked: !s.checked } : s))
   }
 
-  async function seedAlerts() {
-    setSeedLoading(true)
-    for (const a of DEFAULT_ALERTS) {
-      await supabase.from('alerts').insert({ ...a, user_id: user?.id })
-    }
-    await load()
-    setSeedLoading(false)
-  }
+  const inclPaused = scenarios[0].checked
+  const inflation = scenarios[1].checked
+  const noAnnual = scenarios[2].checked
+  const factor = inflation ? 1.1 : 1.0
 
-  async function toggleAlert(id: string, enabled: boolean) {
-    setSaving(id)
-    await supabase.from('alerts').update({ enabled }).eq('id', id)
-    setAlerts(prev => prev.map(a => a.id === id ? { ...a, enabled } : a))
-    setSaving(null)
-  }
+  const baseMonthly = subs.filter(s => {
+    if (s.status === 'cancelled') return false
+    if (s.status === 'paused' && !inclPaused) return false
+    if (noAnnual && s.billing_cycle === 'yearly') return false
+    return true
+  }).reduce((a, s) => a + monthlyEquivalent(s), 0) * factor
 
-  async function saveThreshold(id: string) {
-    const val = parseFloat(editValue)
-    if (isNaN(val)) return
-    await supabase.from('alerts').update({ threshold_value: val }).eq('id', id)
-    setAlerts(prev => prev.map(a => a.id === id ? { ...a, threshold_value: val } : a))
-    setEditingId(null)
-  }
+  const monthlyData = MONTHS.map((month, i) => {
+    let base = baseMonthly
+    subs.forEach(s => {
+      if (s.status === 'cancelled') return
+      if (s.status === 'paused' && !inclPaused) return
+      if (s.billing_cycle === 'yearly' && !noAnnual && s.next_billing_date) {
+        const m = parseInt(s.next_billing_date.split('-')[1]) - 1
+        if (m === i) base += (s.cost * factor) - (s.cost / 12 * factor)
+      }
+    })
+    return { month, value: Math.max(0, base) }
+  })
 
-  async function deleteAlert(id: string) {
-    await supabase.from('alerts').delete().eq('id', id)
-    setAlerts(prev => prev.filter(a => a.id !== id))
-  }
+  let cum = 0
+  const chartData = monthlyData.map(d => { cum += d.value; return { ...d, cumulative: cum } })
+  const total12m = chartData[11]?.cumulative ?? 0
 
-  const activeCount = alerts.filter(a => a.enabled).length
+  // Category breakdown for pie
+  const catTotals: Record<string, number> = {}
+  subs.filter(s => s.status === 'active').forEach(s => {
+    catTotals[s.category] = (catTotals[s.category] ?? 0) + monthlyEquivalent(s)
+  })
+  const catData = Object.entries(catTotals)
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, value]) => ({ name, value }))
+
+  const quarters = [
+    { q: 'Q1', months: 'JAN – MAR', idx: [0, 1, 2] },
+    { q: 'Q2', months: 'APR – JUN', idx: [3, 4, 5] },
+    { q: 'Q3', months: 'JUL – SEP', idx: [6, 7, 8] },
+    { q: 'Q4', months: 'OCT – DEC', idx: [9, 10, 11] },
+  ]
+
+  if (loading) {
+    return <AppLayout><div className="p-8 animate-pulse space-y-4">{[...Array(4)].map((_, i) => <div key={i} className="h-32 bg-surface-container-low" />)}</div></AppLayout>
+  }
 
   return (
     <AppLayout>
-      <div className="p-8 max-w-3xl space-y-10">
+      <div className="p-4 lg:p-8 space-y-6 lg:space-y-10 max-w-[1400px]">
 
         {/* Header */}
         <div className="flex items-start justify-between animate-fade-up">
           <div>
-            <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Notification Layer</div>
-            <h1 className="font-headline font-bold text-3xl tracking-tighter text-on-surface">Alert Configuration</h1>
-            <p className="font-label text-sm text-on-surface-variant mt-1">Define granular thresholds for subscription renewals and budget overflows.</p>
+            <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Projection Engine</div>
+            <h1 className="font-headline font-bold text-3xl tracking-tighter text-on-surface">Burn Forecast</h1>
+            <p className="font-label text-sm text-on-surface-variant mt-1">12-month projection & scenario modeling</p>
           </div>
           <div className="text-right">
-            <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Active Alerts</div>
-            <div className="font-label font-bold text-3xl tabular-nums text-on-surface">{activeCount}</div>
+            <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Projected 12M Burn</div>
+            <div className="font-label font-bold text-3xl tabular-nums text-on-surface">
+              {total12m.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              <span className="text-base font-normal text-on-surface-variant ml-1">PLN</span>
+            </div>
           </div>
         </div>
 
-        {/* Status pill */}
-        <div className="flex items-center gap-4 bg-surface-container-low border border-outline-variant/10 px-6 py-4 animate-fade-up delay-75">
-          <div className="flex items-center gap-2">
-            <span className={clsx('w-2 h-2 rounded-full animate-pulse-soft', activeCount > 0 ? 'bg-secondary' : 'bg-outline-variant')} />
-            <span className="font-label text-xs font-semibold uppercase tracking-wider text-on-surface">
-              {activeCount > 0 ? 'Global Alerts Enabled' : 'All Alerts Disabled'}
-            </span>
+        {/* Main Chart */}
+        <div className="bg-surface-container-lowest border border-outline-variant/15 p-8 animate-fade-up delay-100">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Cumulative Outflow</div>
+              <div className="font-headline font-semibold text-lg tracking-tight text-on-surface">Monthly Spend & Trend</div>
+            </div>
+            <div className="flex items-center gap-5">
+              <div className="flex items-center gap-2 font-label text-[10px] text-on-surface-variant uppercase tracking-wider">
+                <span className="w-3 h-3 bg-on-surface inline-block" />Monthly Spend
+              </div>
+              <div className="flex items-center gap-2 font-label text-[10px] text-on-surface-variant uppercase tracking-wider">
+                <span className="w-5 border-t-2 border-dashed border-secondary inline-block" />Cumulative
+              </div>
+            </div>
           </div>
-          <span className="font-label text-xs text-on-surface-variant">
-            {activeCount} of {alerts.length} rules active &middot; SMTP responding within 42ms
-          </span>
+          <div className="h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={chartData} margin={{ top: 8, right: 40, left: 10, bottom: 0 }} barCategoryGap="30%">
+                <CartesianGrid stroke="#EDEEF0" vertical={false} strokeDasharray="0" />
+                <XAxis
+                  dataKey="month"
+                  tick={{ fontFamily: 'Space Grotesk', fontSize: 10, fill: '#777' }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  yAxisId="left"
+                  tick={{ fontFamily: 'Space Grotesk', fontSize: 10, fill: '#777' }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={v => v.toFixed(0)}
+                  domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.3 / 100) * 100]}
+                  width={55}
+                />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  tick={{ fontFamily: 'Space Grotesk', fontSize: 10, fill: '#006D42' }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={v => v >= 1000 ? `${(v/1000).toFixed(1)}K` : v.toFixed(0)}
+                  width={50}
+                />
+                <Tooltip
+                  contentStyle={{ background: '#fff', border: '1px solid #C6C6C6', borderRadius: 0, fontFamily: 'Space Grotesk', fontSize: 11 }}
+                  formatter={(v: number, name: string) => [`${v.toFixed(2)} PLN`, name === 'value' ? 'Monthly Spend' : 'Cumulative']}
+                  cursor={{ fill: 'rgba(0,0,0,0.04)' }}
+                />
+                <Bar yAxisId="left" dataKey="value" radius={0}>
+                  {chartData.map((entry, i) => (
+                    <Cell
+                      key={i}
+                      fill={entry.value > baseMonthly * 1.5 ? '#000000' : '#3A3A3A'}
+                      opacity={0.75 + (i / chartData.length) * 0.25}
+                    />
+                  ))}
+                </Bar>
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="cumulative"
+                  stroke="#006D42"
+                  strokeWidth={2}
+                  strokeDasharray="5 4"
+                  dot={{ fill: '#006D42', r: 3, strokeWidth: 0 }}
+                  activeDot={{ r: 5, fill: '#006D42' }}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Mini stats below chart */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-0 mt-6 pt-6 border-t border-outline-variant/15">
+            {[
+              { label: 'Avg Monthly', value: (total12m / 12).toFixed(2) + ' PLN' },
+              { label: 'Peak Month', value: Math.max(...chartData.map(d => d.value)).toFixed(2) + ' PLN' },
+              { label: 'Total 12M', value: total12m.toFixed(2) + ' PLN' },
+              { label: 'Active Subs', value: subs.filter(s => s.status === 'active').length.toString() },
+            ].map((s, i) => (
+              <div key={s.label} className={clsx('px-6', i > 0 && 'border-l border-outline-variant/15')}>
+                <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">{s.label}</div>
+                <div className="font-label font-bold text-lg tabular-nums text-on-surface">{s.value}</div>
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Alerts list */}
-        {loading ? (
-          <div className="space-y-3">
-            {[...Array(3)].map((_, i) => <div key={i} className="h-24 bg-surface-container-low animate-pulse" />)}
+        {/* Scenarios + Quarterly Table */}
+        <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-4 lg:gap-6 animate-fade-up delay-200">
+          {/* Scenarios */}
+          <div className="bg-surface-container-low border border-outline-variant/10 p-6 flex flex-col">
+            <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Modeling</div>
+            <div className="font-headline font-semibold text-base tracking-tight text-on-surface mb-6">Scenario Modifiers</div>
+            <div className="space-y-5 flex-1">
+              {scenarios.map(s => (
+                <button key={s.id} onClick={() => toggleScenario(s.id)} className="w-full flex items-start gap-3 text-left group">
+                  <div className={clsx(
+                    'w-4 h-4 border mt-0.5 flex-shrink-0 relative transition-all',
+                    s.checked ? 'border-primary bg-primary' : 'border-outline-variant group-hover:border-on-surface-variant'
+                  )}>
+                    {s.checked && <span className="absolute inset-0 flex items-center justify-center text-white text-[10px] font-bold">✓</span>}
+                  </div>
+                  <div>
+                    <div className="font-label text-sm text-on-surface">{s.label}</div>
+                    <div className="font-label text-xs text-on-surface-variant mt-0.5">{s.desc}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <div className="mt-6 pt-4 border-t border-outline-variant/15">
+              <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Active Modifiers</div>
+              <div className="font-label font-bold text-lg tabular-nums text-on-surface">
+                {scenarios.filter(s => s.checked).length} / {scenarios.length}
+              </div>
+            </div>
           </div>
-        ) : alerts.length === 0 ? (
-          <div className="bg-surface-container-low border border-outline-variant/10 p-12 text-center animate-fade-up">
-            <span className="material-symbols-outlined text-[40px] text-on-surface-variant mb-4 block">notifications_off</span>
-            <p className="font-headline font-semibold text-base text-on-surface mb-1">No alerts configured</p>
-            <p className="font-label text-sm text-on-surface-variant mb-6">Run the seed to add default alert rules to your ledger.</p>
-            <button
-              onClick={seedAlerts}
-              disabled={seedLoading}
-              className="bg-primary text-white font-label font-bold text-xs uppercase tracking-widest px-6 py-3 hover:bg-on-surface transition-colors disabled:opacity-50"
-            >
-              {seedLoading ? 'Seeding...' : 'Seed Default Alerts'}
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {alerts.map((alert, i) => {
-              const accent = ALERT_ACCENT[alert.type] ?? ALERT_ACCENT.duplicate
-              const icon = ALERT_ICONS[alert.type] ?? 'notifications'
-              const isEditing = editingId === alert.id
-              return (
-                <div
-                  key={alert.id}
-                  className={clsx(
-                    'bg-surface-container-lowest border p-6 transition-all duration-200 animate-fade-up',
-                    alert.enabled ? 'border-outline-variant/15 hover:border-outline-variant/30' : 'border-outline-variant/10 opacity-60'
-                  )}
-                  style={{ animationDelay: `${i * 60}ms` }}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-4 flex-1">
-                      <div className={clsx('w-9 h-9 border flex items-center justify-center flex-shrink-0', accent)}>
-                        <span className="material-symbols-outlined text-[18px]">{icon}</span>
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-1">
-                          <span className="font-headline font-semibold text-sm text-on-surface">{alert.label}</span>
-                          <span className={clsx('font-label text-[9px] uppercase tracking-widest px-1.5 py-0.5 border', accent)}>
-                            {alert.type}
-                          </span>
-                        </div>
-                        <p className="font-label text-xs text-on-surface-variant mb-3">{alert.description}</p>
 
-                        {/* Threshold */}
-                        <div className="flex items-center gap-2">
-                          <span className="font-label text-xs text-on-surface-variant">Threshold:</span>
-                          {isEditing ? (
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="number"
-                                value={editValue}
-                                onChange={e => setEditValue(e.target.value)}
-                                className="w-20 px-2 py-1 bg-surface-container-low border border-primary font-label text-sm tabular-nums text-on-surface focus:outline-none"
-                                autoFocus
-                                onKeyDown={e => { if (e.key === 'Enter') saveThreshold(alert.id); if (e.key === 'Escape') setEditingId(null) }}
-                              />
-                              <span className="font-label text-xs text-on-surface-variant">{alert.threshold_unit}</span>
-                              <button onClick={() => saveThreshold(alert.id)} className="font-label text-[10px] uppercase tracking-wider text-secondary hover:text-secondary/80 transition-colors">Save</button>
-                              <button onClick={() => setEditingId(null)} className="font-label text-[10px] uppercase tracking-wider text-on-surface-variant hover:text-on-surface transition-colors">Cancel</button>
-                            </div>
-                          ) : (
-                            <button
-                              onClick={() => { setEditingId(alert.id); setEditValue(String(alert.threshold_value)) }}
-                              className="flex items-center gap-1 font-label text-sm font-semibold tabular-nums text-on-surface hover:text-primary transition-colors group"
-                            >
-                              {alert.threshold_value} {alert.threshold_unit}
-                              <span className="material-symbols-outlined text-[13px] text-on-surface-variant group-hover:text-primary transition-colors">edit</span>
-                            </button>
-                          )}
-                        </div>
-                      </div>
+          {/* Quarterly table */}
+          <div className="bg-surface-container-lowest border border-outline-variant/15 p-6">
+            <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Raw Output</div>
+            <div className="font-headline font-semibold text-base tracking-tight text-on-surface mb-6">Quarterly Breakdown</div>
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-outline-variant/15">
+                  {['Quarter', 'Period', 'Projected', 'Cumulative', 'Delta'].map(h => (
+                    <th key={h} className="text-left py-2 px-3 font-label text-[10px] uppercase tracking-widest text-on-surface-variant">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {quarters.map(({ q, months, idx }, qi) => {
+                  const proj = idx.reduce((a, i) => a + (monthlyData[i]?.value ?? 0), 0)
+                  const cumVal = chartData[idx[2]]?.cumulative ?? 0
+                  const prevCum = qi === 0 ? 0 : (chartData[quarters[qi - 1].idx[2]]?.cumulative ?? 0)
+                  const delta = qi === 0 ? null : ((cumVal - prevCum) / Math.abs(prevCum || 1)) * 100
+                  return (
+                    <tr key={q} className="border-b border-outline-variant/10 hover:bg-surface-container-low transition-colors">
+                      <td className="py-3 px-3 font-label font-bold text-sm text-on-surface">{q}</td>
+                      <td className="py-3 px-3 font-label text-sm text-on-surface-variant">{months}</td>
+                      <td className="py-3 px-3 font-label text-sm tabular-nums text-on-surface">{proj.toFixed(2)}</td>
+                      <td className={clsx('py-3 px-3 font-label text-sm tabular-nums font-semibold', qi === 3 ? 'text-on-surface' : 'text-on-surface')}>{cumVal.toFixed(2)}</td>
+                      <td className="py-3 px-3">
+                        {delta === null
+                          ? <span className="font-label text-sm text-on-surface-variant">—</span>
+                          : <span className={clsx('font-label text-xs font-bold', delta >= 0 ? 'text-tertiary' : 'text-secondary')}>
+                              {delta >= 0 ? '+' : ''}{delta.toFixed(1)}%
+                            </span>
+                        }
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Category Pie */}
+        <div className="bg-surface-container-low border border-outline-variant/10 p-8 animate-fade-up delay-300">
+          <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Distribution</div>
+          <div className="font-headline font-semibold text-lg tracking-tight text-on-surface mb-6">Category Allocation</div>
+          <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-6 lg:gap-8 items-center">
+            <div className="h-56">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={catData} cx="50%" cy="50%" innerRadius={60} outerRadius={95} dataKey="value" stroke="none">
+                    {catData.map((entry, i) => (
+                      <Cell key={i} fill={CAT_COLORS[entry.name] ?? '#9CA3AF'} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{ background: '#fff', border: '1px solid #C6C6C6', borderRadius: 0, fontFamily: 'Space Grotesk', fontSize: 11 }}
+                    formatter={(v: number) => [`${v.toFixed(2)} PLN`]}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="space-y-3">
+              {catData.map(({ name, value }) => {
+                const total = catData.reduce((a, c) => a + c.value, 0)
+                const pct = total > 0 ? (value / total * 100) : 0
+                return (
+                  <div key={name} className="flex items-center justify-between group">
+                    <div className="flex items-center gap-3 flex-1">
+                      <span className="w-2.5 h-2.5 flex-shrink-0" style={{ background: CAT_COLORS[name] ?? '#9CA3AF' }} />
+                      <span className="font-label text-sm text-on-surface">{name}</span>
                     </div>
-
-                    {/* Controls */}
-                    <div className="flex items-center gap-3 flex-shrink-0">
-                      <button
-                        onClick={() => toggleAlert(alert.id, !alert.enabled)}
-                        disabled={saving === alert.id}
-                        className={clsx(
-                          'relative w-10 h-5 transition-all duration-200 focus:outline-none',
-                          alert.enabled ? 'bg-primary' : 'bg-surface-container-highest'
-                        )}
-                      >
-                        <span className={clsx(
-                          'absolute top-0.5 w-4 h-4 bg-white transition-all duration-200',
-                          alert.enabled ? 'left-5' : 'left-0.5'
-                        )} />
-                      </button>
-                      <button
-                        onClick={() => deleteAlert(alert.id)}
-                        className="font-label text-[10px] text-on-surface-variant hover:text-tertiary transition-colors uppercase tracking-wider"
-                      >
-                        <span className="material-symbols-outlined text-[16px]">delete</span>
-                      </button>
+                    <div className="flex items-center gap-6">
+                      <div className="w-32 h-1 bg-surface-container overflow-hidden">
+                        <div className="h-full transition-all duration-700" style={{ width: `${pct}%`, background: CAT_COLORS[name] ?? '#9CA3AF' }} />
+                      </div>
+                      <span className="font-label text-xs tabular-nums text-on-surface-variant w-10 text-right">{pct.toFixed(0)}%</span>
+                      <span className="font-label text-sm tabular-nums text-on-surface w-28 text-right">{value.toFixed(2)} PLN</span>
                     </div>
                   </div>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
-        )}
-
-        {/* Add new alert */}
-        {alerts.length > 0 && (
-          <div className="animate-fade-up delay-300">
-            <AddAlertForm onAdded={load} userId={user!.id} />
-          </div>
-        )}
+        </div>
 
       </div>
     </AppLayout>
-  )
-}
-
-function AddAlertForm({ onAdded, userId }: { onAdded: () => void, userId: string }) {
-  const [open, setOpen] = useState(false)
-  const [form, setForm] = useState({ type: 'renewal', label: '', description: '', threshold_value: '', threshold_unit: 'days' })
-  const [saving, setSaving] = useState(false)
-
-  async function handleAdd() {
-    if (!form.label.trim() || !form.threshold_value) return
-    setSaving(true)
-    await supabase.from('alerts').insert({
-      type: form.type,
-      label: form.label,
-      description: form.description,
-      threshold_value: parseFloat(form.threshold_value),
-      threshold_unit: form.threshold_unit,
-      enabled: true,
-      user_id: userId,
-    })
-    setSaving(false)
-    setOpen(false)
-    setForm({ type: 'renewal', label: '', description: '', threshold_value: '', threshold_unit: 'days' })
-    onAdded()
-  }
-
-  if (!open) {
-    return (
-      <button onClick={() => setOpen(true)} className="w-full flex items-center justify-center gap-2 py-4 border border-dashed border-outline-variant/30 font-label text-xs uppercase tracking-widest text-on-surface-variant hover:border-primary hover:text-primary transition-all">
-        <span className="material-symbols-outlined text-[16px]">add</span>
-        Add Alert Rule
-      </button>
-    )
-  }
-
-  return (
-    <div className="bg-surface-container-low border border-primary/20 p-6 space-y-4 animate-fade-in">
-      <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-4">New Alert Rule</div>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant block mb-2">Type</label>
-          <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))}
-            className="w-full px-3 py-2.5 bg-surface-container-lowest border border-outline-variant/30 font-label text-sm text-on-surface focus:outline-none focus:border-primary transition-colors">
-            <option value="renewal">Renewal</option>
-            <option value="budget">Budget</option>
-            <option value="duplicate">Duplicate</option>
-          </select>
-        </div>
-        <div>
-          <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant block mb-2">Label</label>
-          <input value={form.label} onChange={e => setForm(p => ({ ...p, label: e.target.value }))} placeholder="Alert name..."
-            className="w-full px-3 py-2.5 bg-surface-container-lowest border border-outline-variant/30 font-label text-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-primary transition-colors" />
-        </div>
-        <div>
-          <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant block mb-2">Threshold Value</label>
-          <input type="number" value={form.threshold_value} onChange={e => setForm(p => ({ ...p, threshold_value: e.target.value }))}
-            className="w-full px-3 py-2.5 bg-surface-container-lowest border border-outline-variant/30 font-label text-sm text-on-surface focus:outline-none focus:border-primary transition-colors" />
-        </div>
-        <div>
-          <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant block mb-2">Unit</label>
-          <select value={form.threshold_unit} onChange={e => setForm(p => ({ ...p, threshold_unit: e.target.value }))}
-            className="w-full px-3 py-2.5 bg-surface-container-lowest border border-outline-variant/30 font-label text-sm text-on-surface focus:outline-none focus:border-primary transition-colors">
-            <option value="days">days</option>
-            <option value="PLN">PLN</option>
-            <option value="hours">hours</option>
-            <option value="USD">USD</option>
-          </select>
-        </div>
-      </div>
-      <div className="flex gap-3">
-        <button onClick={handleAdd} disabled={saving}
-          className="bg-primary text-white font-label font-bold text-xs uppercase tracking-widest px-5 py-2.5 hover:bg-on-surface transition-colors disabled:opacity-50">
-          {saving ? 'Adding...' : 'Add Rule'}
-        </button>
-        <button onClick={() => setOpen(false)}
-          className="px-5 py-2.5 border border-outline-variant/30 font-label text-xs uppercase tracking-wider text-on-surface-variant hover:border-primary hover:text-on-surface transition-all">
-          Cancel
-        </button>
-      </div>
-    </div>
   )
 }
