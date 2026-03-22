@@ -63,7 +63,7 @@ export default function SubscriptionsPage() {
     setDeletingId(null)
   }
 
-  const categories = [...new Set(subs.map(s => s.category))].sort()
+    const categories = Array.from(new Set(subs.map(s => s.category))).sort()
 
   const filtered = subs
     .filter(s => {
