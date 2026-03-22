@@ -87,11 +87,6 @@ export default function LoginPage() {
         <div className="w-full max-w-[400px] animate-fade-up">
 
           {/* Mobile logo */}
-          <div className="lg:hidden mb-10">
-            <div className="font-headline font-bold sm:hidden text-xl tracking-tighter text-on-surface">Subly</div>
-            <div className="font-label text-[10px] uppercase sm:hidden tracking-widest text-on-surface-variant mt-0.5">Sub Manage</div>
-          </div>
-
           <div className="mb-8">
             <h1 className="font-headline font-bold text-2xl tracking-tighter text-on-surface">Sign in</h1>
             <p className="font-label text-sm text-on-surface-variant mt-1">Access your financial ledger.</p>
