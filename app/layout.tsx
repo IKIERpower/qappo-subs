@@ -3,8 +3,8 @@ import './globals.css'
 import { AuthProvider } from '@/app/lib/AuthContext'
 
 export const metadata: Metadata = {
-  title: 'Precision Editorial — Financial Architect',
-  description: 'Subscription ledger & financial analytics dashboard',
+  title: 'Subly',
+  description: 'Subscription Manager',
 }
 
 export default function RootLayout({

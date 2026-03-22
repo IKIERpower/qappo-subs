@@ -55,8 +55,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       )}>
         <div className="px-6 py-6 border-b border-outline-variant/20 flex items-center justify-between">
           <div>
-            <div className="font-headline font-bold text-base tracking-tighter text-on-surface">Precision Editorial</div>
-            <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mt-0.5">Financial Architect</div>
+            <div className="font-headline font-bold text-base tracking-tighter text-on-surface">Subly</div>
+            <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mt-0.5">Sub Manager</div>
           </div>
           <button
             className="lg:hidden material-symbols-outlined text-[20px] text-on-surface-variant"

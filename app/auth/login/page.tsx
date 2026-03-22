@@ -44,7 +44,7 @@ export default function LoginPage() {
       <div className="hidden lg:flex w-[480px] min-w-[480px] bg-primary flex-col justify-between p-12">
         <div>
           <div className="font-headline font-bold text-xl tracking-tighter text-white">Subly</div>
-          <div className="font-label text-[10px] uppercase tracking-widest text-white/40 mt-0.5">Subscription Manager</div>
+          <div className="font-label text-[10px] uppercase tracking-widest text-white/40 mt-0.5">Sub Manager</div>
         </div>
 
         <div className="space-y-8">
@@ -88,8 +88,8 @@ export default function LoginPage() {
 
           {/* Mobile logo */}
           <div className="lg:hidden mb-10">
-            <div className="font-headline font-bold text-xl tracking-tighter text-on-surface">Precision Editorial</div>
-            <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mt-0.5">Financial Architect</div>
+            <div className="font-headline font-bold text-xl tracking-tighter text-on-surface">Subly</div>
+            <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mt-0.5">Sub Manage</div>
           </div>
 
           <div className="mb-8">
@@ -131,7 +131,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   onKeyDown={handleKey}
-                  placeholder="••••••••"
+                  placeholder="password"
                   autoComplete="current-password"
                   className="w-full px-4 py-3 pr-12 bg-surface-container-low border border-outline-variant/30 text-on-surface font-label text-sm placeholder:text-on-surface-variant focus:outline-none focus:border-primary transition-colors"
                 />
