@@ -122,11 +122,11 @@ export default function NewSubscriptionPage() {
             Subscriptions
           </Link>
           <span className="text-outline-variant">/</span>
-          <span className="font-label text-xs text-on-surface">New Entry</span>
+          <span className="font-label text-xs text-on-surface">New Sub</span>
         </div>
 
         <div className="mb-8">
-          <h1 className="font-headline font-bold text-2xl tracking-tighter text-on-surface">Initialize Protocol</h1>
+          <h1 className="font-headline font-bold text-2xl tracking-tighter text-on-surface">New Sub</h1>
           <p className="font-label text-sm text-on-surface-variant mt-1">Add a new subscription to your financial ledger.</p>
         </div>
 

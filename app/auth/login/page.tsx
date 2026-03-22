@@ -88,8 +88,8 @@ export default function LoginPage() {
 
           {/* Mobile logo */}
           <div className="lg:hidden mb-10">
-            <div className="font-headline font-bold text-xl tracking-tighter text-on-surface">Subly</div>
-            <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mt-0.5">Sub Manage</div>
+            <div className="font-headline font-bold sm:hidden text-xl tracking-tighter text-on-surface">Subly</div>
+            <div className="font-label text-[10px] uppercase sm:hidden tracking-widest text-on-surface-variant mt-0.5">Sub Manage</div>
           </div>
 
           <div className="mb-8">

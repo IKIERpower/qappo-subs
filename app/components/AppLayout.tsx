@@ -156,7 +156,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             className="flex items-center gap-1.5 bg-primary text-white font-label font-bold text-[11px] uppercase tracking-widest px-3 py-2 lg:px-4 hover:bg-on-surface transition-colors duration-150"
           >
             <span className="material-symbols-outlined text-[14px]">add</span>
-            <span className="hidden sm:inline">New Entry</span>
+            <span className="hidden sm:inline">New Sub</span>
           </Link>
         </header>
 
