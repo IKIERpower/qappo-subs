@@ -120,6 +120,9 @@ export default function LoginPage() {
               {/*    Forgot?*/}
               {/*  </Link>*/}
               {/*</div>*/}
+                <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant block mb-2">
+                    PASSWORD
+                </label>
               <div className="relative">
                 <input
                   type={showPass ? 'text' : 'password'}

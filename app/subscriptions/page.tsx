@@ -159,7 +159,20 @@ export default function SubscriptionsPage() {
                           {sub.name.slice(0, 2).toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-headline font-semibold text-sm text-on-surface truncate">{sub.name}</div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-headline font-semibold text-sm text-on-surface truncate">{sub.name}</span>
+                            {sub.website && (
+                              <a
+                                href={sub.website}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={e => e.stopPropagation()}
+                                className="text-on-surface-variant hover:text-primary transition-colors flex-shrink-0"
+                              >
+                                <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+                              </a>
+                            )}
+                          </div>
                           <div className="font-label text-[10px] uppercase tracking-wide text-on-surface-variant">{sub.category}</div>
                         </div>
                         <div className="text-right flex-shrink-0">
@@ -190,6 +203,17 @@ export default function SubscriptionsPage() {
                             </div>
                           </div>
                           {sub.notes && <p className="font-label text-xs text-on-surface-variant">{sub.notes}</p>}
+                          {sub.website && (
+                            <a
+                              href={sub.website}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 font-label text-xs text-primary hover:text-on-surface transition-colors"
+                            >
+                              <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+                              Visit Website
+                            </a>
+                          )}
                           <div className="flex gap-2 pt-1">
                             {sub.status !== 'cancelled' && (
                               <button
@@ -268,7 +292,20 @@ export default function SubscriptionsPage() {
                               <div className="w-7 h-7 bg-surface-container flex items-center justify-center font-label font-bold text-[10px] text-on-surface-variant flex-shrink-0">
                                 {sub.name.slice(0, 2).toUpperCase()}
                               </div>
-                              <span className="font-headline font-semibold text-sm text-on-surface group-hover:text-primary transition-colors">{sub.name}</span>
+                              <div className="flex items-center gap-2">
+                                <span className="font-headline font-semibold text-sm text-on-surface group-hover:text-primary transition-colors">{sub.name}</span>
+                                {sub.website && (
+                                  <a
+                                    href={sub.website}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={e => e.stopPropagation()}
+                                    className="text-on-surface-variant hover:text-primary transition-colors flex-shrink-0"
+                                  >
+                                    <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+                                  </a>
+                                )}
+                              </div>
                             </div>
                           </td>
                           <td className="px-6 py-4">
@@ -315,6 +352,20 @@ export default function SubscriptionsPage() {
                                     <div>
                                       <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Notes</div>
                                       <div className="font-label text-sm text-on-surface">{sub.notes}</div>
+                                    </div>
+                                  )}
+                                  {sub.website && (
+                                    <div>
+                                      <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Website</div>
+                                      <a
+                                        href={sub.website}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-1 font-label text-sm text-primary hover:text-on-surface transition-colors"
+                                      >
+                                        <span>Visit</span>
+                                        <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+                                      </a>
                                     </div>
                                   )}
                                 </div>

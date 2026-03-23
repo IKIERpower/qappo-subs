@@ -126,7 +126,9 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between mt-3 md:mt-0">
               <span className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest">currently active</span>
               <span className="flex items-center gap-1 font-label text-xs font-bold text-secondary">
-                <span className="material-symbols-outlined text-[13px]">check_circle</span>nominal
+              <Link href="/subscriptions" className="font-label text-[10px] uppercase tracking-wider text-on-surface-variant hover:text-on-surface flex items-center gap-1 transition-colors">
+                Subscriptions <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
+              </Link>
               </span>
             </div>
           </div>
@@ -233,11 +235,12 @@ export default function DashboardPage() {
                 const days = differenceInDays(sub.d, today)
                 const urgent = days <= 3
                 return (
-                  <div
+                  <Link
                     key={sub.id}
+                    href={`/subscriptions/${sub.id}/edit`}
                     className={clsx(
                       'flex items-center justify-between px-6 py-4 transition-all duration-150',
-                      'hover:bg-surface-container group',
+                      'hover:bg-surface-container group cursor-pointer',
                       `animate-fade-up`
                     )}
                     style={{ animationDelay: `${i * 50}ms` }}
@@ -264,7 +267,7 @@ export default function DashboardPage() {
                         <div className="font-label text-[10px] text-on-surface-variant uppercase">{sub.billing_cycle}</div>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 )
               })}
             </div>

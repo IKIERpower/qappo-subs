@@ -5,6 +5,8 @@ import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import clsx from 'clsx'
 import { useAuth } from '@/app/lib/AuthContext'
+import { useTheme } from '@/app/lib/ThemeContext'
+import SettingsModal from '@/app/components/SettingsModal'
 
 const navItems = [
   { href: '/dashboard', icon: 'dashboard', label: 'Dashboard' },
@@ -16,8 +18,10 @@ const navItems = [
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { user, loading, signOut } = useAuth()
+  const { isDark, toggleTheme } = useTheme()
   const [signingOut, setSigningOut] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const displayName = user?.email?.split('@')[0] ?? '—'
@@ -115,10 +119,38 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Signed in as</div>
                   <div className="font-label text-xs text-on-surface font-medium mt-0.5 truncate">{user?.email}</div>
                 </div>
+                
+                {/* Theme toggle */}
+                <div className="px-4 py-3 border-b border-outline-variant/20 flex items-center justify-between">
+                  <span className="font-label text-xs text-on-surface-variant flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[14px]">{isDark ? 'dark_mode' : 'light_mode'}</span>
+                    {isDark ? 'Dark' : 'Light'} Mode
+                  </span>
+                  <button
+                    onClick={() => { toggleTheme() }}
+                    className="w-10 h-6 bg-outline-variant/20 rounded-full flex items-center p-0.5 transition-all"
+                  >
+                    <div className={clsx(
+                      'w-5 h-5 bg-on-surface rounded-full transition-transform duration-200',
+                      isDark ? 'translate-x-4' : 'translate-x-0'
+                    )} />
+                  </button>
+                </div>
+
+                {/* Settings button */}
+                <button
+                  onClick={() => { setSettingsOpen(true); setUserMenuOpen(false) }}
+                  className="w-full flex items-center gap-2 px-4 py-3 font-label text-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[15px]">settings</span>
+                  Settings
+                </button>
+
+                {/* Sign out button */}
                 <button
                   onClick={handleSignOut}
                   disabled={signingOut}
-                  className="w-full flex items-center gap-2 px-4 py-3 font-label text-xs text-on-surface-variant hover:text-tertiary hover:bg-surface-container-low transition-colors disabled:opacity-50"
+                  className="w-full flex items-center gap-2 px-4 py-3 font-label text-xs text-on-surface-variant hover:text-tertiary hover:bg-surface-container-low transition-colors disabled:opacity-50 border-t border-outline-variant/20"
                 >
                   {signingOut
                     ? <span className="w-3.5 h-3.5 border-2 border-outline-variant/30 border-t-on-surface-variant rounded-full animate-spin" />
@@ -191,6 +223,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           )
         })}
       </nav>
+
+      {/* Settings Modal */}
+      {settingsOpen && (
+        <SettingsModal 
+          onClose={() => setSettingsOpen(false)} 
+          userEmail={user?.email}
+        />
+      )}
 
     </div>
   )

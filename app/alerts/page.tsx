@@ -12,8 +12,8 @@ const ALERT_ICONS: Record<string, string> = {
   duplicate: 'content_copy',
 }
 const ALERT_ACCENT: Record<string, string> = {
-  renewal: 'text-secondary border-secondary/20 bg-secondary/5',
-  budget: 'text-tertiary border-tertiary/20 bg-tertiary/5',
+  renewal: 'text-secondary border-outline-variant/20 bg-surface-container',
+  budget: 'text-tertiary border-outline-variant/20 bg-surface-container',
   duplicate: 'text-on-surface-variant border-outline-variant/20 bg-surface-container',
 }
 

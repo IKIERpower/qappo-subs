@@ -48,6 +48,14 @@ export default function EditSubscriptionPage() {
     setForm(prev => ({ ...prev, [key]: value }))
   }
 
+  function normalizeUrl(url: string): string {
+    if (!url) return ''
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      return `https://${url}`
+    }
+    return url
+  }
+
   async function handleSubmit() {
     setSaving(true)
     await supabase.from('subscriptions').update({
@@ -59,7 +67,7 @@ export default function EditSubscriptionPage() {
       next_billing_date: form.next_billing_date,
       status: form.status,
       notes: form.notes,
-      website: form.website,
+      website: form.website ? normalizeUrl(form.website) : null,
     }).eq('id', id)
     setSaving(false)
     router.push('/subscriptions')
@@ -147,6 +155,23 @@ export default function EditSubscriptionPage() {
                   </button>
                 ))}
               </div>
+            </div>
+          </div>
+
+          <div>
+            <FieldLabel>Website (optional)</FieldLabel>
+            <div className="relative">
+              <Input type="url" value={form.website ?? ''} onChange={e => set('website', e.target.value)} placeholder="https://..." />
+              {form.website && (
+                <a
+                  href={form.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[18px]">open_in_new</span>
+                </a>
+              )}
             </div>
           </div>
 
