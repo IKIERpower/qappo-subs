@@ -17,13 +17,12 @@ const navItems = [
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { user, loading, signOut } = useAuth()
-  const { isDark, toggleTheme } = useTheme()
+  const { theme, toggleTheme } = useTheme()
   const [signingOut, setSigningOut] = useState(false)
-  const [userMenuOpen, setUserMenuOpen] = useState(false)
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)   // desktop dropdown
+  const [mobileUserMenuOpen, setMobileUserMenuOpen] = useState(false) // mobile dropdown
 
-  const displayName = user?.email?.split('@')[0] ?? '—'
-  const initials = displayName.slice(0, 2).toUpperCase()
+  const initials = (user?.email?.split('@')[0] ?? 'U').slice(0, 2).toUpperCase()
   const currentNav = navItems.find(n => pathname.startsWith(n.href))
 
   async function handleSignOut() {
@@ -42,23 +41,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen bg-surface overflow-hidden">
 
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 bg-black/40 z-40 md:hidden" onClick={() => setSidebarOpen(false)} />
-      )}
-
-      {/* Sidebar */}
-      <aside className={clsx(
-        'fixed md:static inset-y-0 left-0 z-50 w-[240px] min-w-[240px] h-screen bg-surface-container-low flex flex-col transition-transform duration-300 md:translate-x-0',
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      )}>
+      {/* ════════════════════════════════════════
+          DESKTOP SIDEBAR (hidden on mobile)
+      ════════════════════════════════════════ */}
+      <aside className="hidden md:flex w-[240px] min-w-[240px] h-screen bg-surface-container-low flex-col">
         {/* Logo */}
-        <div className="px-6 py-6 border-b border-outline-variant/20 flex items-center justify-between">
-          <div>
-            <div className="font-headline font-bold text-base tracking-tighter text-on-surface">Subly</div>
-            <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mt-0.5">Subscription Tracker</div>
-          </div>
-          <button className="md:hidden material-symbols-outlined text-[20px] text-on-surface-variant" onClick={() => setSidebarOpen(false)}>close</button>
+        <div className="px-6 py-6 border-b border-outline-variant/20">
+          <div className="font-headline font-bold text-base tracking-tighter text-on-surface">Subly</div>
+          <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mt-0.5">Subscription Tracker</div>
         </div>
 
         {/* Nav */}
@@ -69,7 +59,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <Link
                 key={item.href}
                 href={item.href}
-                onClick={() => setSidebarOpen(false)}
                 className={clsx(
                   'flex items-center gap-3 px-3 py-3 transition-all duration-150 group relative',
                   isActive
@@ -78,7 +67,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 )}
               >
                 {isActive && <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-primary" />}
-                <span className={clsx('material-symbols-outlined text-[20px] transition-transform duration-150 group-hover:scale-105', isActive ? 'text-on-surface' : 'text-on-surface-variant')}>
+                <span className={clsx('material-symbols-outlined text-[20px]', isActive ? 'text-on-surface' : 'text-on-surface-variant')}>
                   {item.icon}
                 </span>
                 <span className="font-label text-sm tracking-tight">{item.label}</span>
@@ -87,7 +76,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           })}
         </nav>
 
-        {/* User section */}
+        {/* Desktop user section */}
         <div className="px-3 py-3 border-t border-outline-variant/20">
           <div className="relative">
             <button
@@ -110,19 +99,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Signed in as</div>
                   <div className="font-label text-xs text-on-surface font-medium mt-0.5 truncate">{user?.email}</div>
                 </div>
-                {/* Dark mode toggle */}
                 <button
                   onClick={toggleTheme}
                   className="w-full flex items-center justify-between px-4 py-3 font-label text-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors"
                 >
                   <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[15px]">
-                      {isDark ? 'light_mode' : 'dark_mode'}
-                    </span>
-                    {!isDark ? 'Light Mode' : 'Dark Mode'}
+                    <span className="material-symbols-outlined text-[15px]">{theme === 'dark' ? 'light_mode' : 'dark_mode'}</span>
+                    {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
                   </div>
-                  <div className={clsx('w-8 h-4 rounded-full transition-all duration-300 relative flex-shrink-0', isDark ? 'bg-on-surface' : 'bg-surface-container-highest')}>
-                    <div className={clsx('absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-all duration-300', isDark ? 'left-4' : 'left-0.5')} />
+                  <div className={clsx('w-8 h-4 rounded-full transition-all duration-300 relative flex-shrink-0', theme === 'dark' ? 'bg-on-surface' : 'bg-surface-container-highest')}>
+                    <div className={clsx('absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-all duration-300', theme === 'dark' ? 'left-4' : 'left-0.5')} />
                   </div>
                 </button>
                 <Link
@@ -150,37 +136,110 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      {/* Main content */}
+      {/* ════════════════════════════════════════
+          MAIN CONTENT
+      ════════════════════════════════════════ */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+
         {/* Top bar */}
-        <header className="h-14 bg-surface-container-lowest/80 backdrop-blur-md border-b border-outline-variant/20 flex items-center justify-between px-4 md:px-8 flex-shrink-0 sticky top-0 z-40">
-          <div className="flex items-center gap-3">
-            <button className="md:hidden material-symbols-outlined text-[22px] text-on-surface-variant hover:text-on-surface transition-colors" onClick={() => setSidebarOpen(true)}>menu</button>
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px] text-on-surface-variant hidden sm:block">{currentNav?.icon ?? 'dashboard'}</span>
-              <span className="font-headline font-semibold text-sm tracking-tight text-on-surface">{currentNav?.label ?? 'Dashboard'}</span>
+        <header className="h-14 bg-surface-container-lowest/90 backdrop-blur-md border-b border-outline-variant/20 flex items-center justify-between px-4 md:px-8 flex-shrink-0 sticky top-0 z-40">
+          {/* Left: page title */}
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[18px] text-on-surface-variant hidden md:block">
+              {currentNav?.icon ?? 'dashboard'}
+            </span>
+            <span className="font-headline font-semibold text-sm tracking-tight text-on-surface">
+              {currentNav?.label ?? 'Dashboard'}
+            </span>
+          </div>
+
+          {/* Right */}
+          <div className="flex items-center gap-2">
+            <Link
+              href="/subscriptions/new"
+              className="flex items-center gap-1.5 bg-primary text-white font-label font-bold text-[11px] uppercase tracking-widest px-3 py-2 hover:opacity-80 transition-opacity"
+            >
+              <span className="material-symbols-outlined text-[14px]">add</span>
+              <span className="hidden md:inline">New Entry</span>
+            </Link>
+
+            {/* Mobile-only: user avatar in topbar */}
+            <div className="md:hidden relative">
+              <button
+                onClick={() => setMobileUserMenuOpen(v => !v)}
+                className="w-8 h-8 bg-primary flex items-center justify-center font-label font-bold text-[11px] text-white"
+              >
+                {initials}
+              </button>
+
+              {mobileUserMenuOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setMobileUserMenuOpen(false)} />
+                  <div className="absolute right-0 top-full mt-2 w-64 bg-surface-container-lowest border border-outline-variant/30 shadow-lg animate-fade-up z-50">
+                    <div className="px-4 py-3 border-b border-outline-variant/20">
+                      <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Zalogowany jako</div>
+                      <div className="font-label text-xs text-on-surface font-medium mt-0.5 truncate">{user?.email}</div>
+                    </div>
+                    {/* Dark mode — only mobile */}
+                    <button
+                      onClick={toggleTheme}
+                      className="w-full flex items-center justify-between px-4 py-3 font-label text-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[16px]">{theme === 'dark' ? 'light_mode' : 'dark_mode'}</span>
+                        {theme === 'dark' ? 'Jasny motyw' : 'Ciemny motyw'}
+                      </div>
+                      <div className={clsx('w-9 h-5 rounded-full transition-all duration-300 relative flex-shrink-0', theme === 'dark' ? 'bg-on-surface' : 'bg-surface-container-highest')}>
+                        <div className={clsx('absolute top-1 w-3 h-3 rounded-full bg-white shadow transition-all duration-300', theme === 'dark' ? 'left-5' : 'left-1')} />
+                      </div>
+                    </button>
+                    <Link
+                      href="/settings"
+                      onClick={() => setMobileUserMenuOpen(false)}
+                      className="flex items-center gap-2 px-4 py-3 font-label text-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors border-t border-outline-variant/10"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">settings</span>
+                      Ustawienia
+                    </Link>
+                    <button
+                      onClick={handleSignOut}
+                      disabled={signingOut}
+                      className="w-full flex items-center gap-2 px-4 py-3 font-label text-xs text-on-surface-variant hover:text-tertiary hover:bg-surface-container-low transition-colors disabled:opacity-50 border-t border-outline-variant/10"
+                    >
+                      {signingOut
+                        ? <span className="w-3.5 h-3.5 border-2 border-outline-variant/30 border-t-on-surface-variant rounded-full animate-spin" />
+                        : <span className="material-symbols-outlined text-[16px]">logout</span>
+                      }
+                      Wyloguj
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
-          <Link
-            href="/subscriptions/new"
-            className="flex items-center gap-1.5 bg-primary text-white font-label font-bold text-[11px] uppercase tracking-widest px-3 py-2 md:px-4 hover:opacity-80 transition-opacity duration-150"
-          >
-            <span className="material-symbols-outlined text-[14px]">add</span>
-            <span className="hidden sm:inline">New Entry</span>
-          </Link>
         </header>
 
-        <main className="flex-1 overflow-auto pb-20 md:pb-0" onClick={() => setUserMenuOpen(false)}>
+        {/* Page content */}
+        <main className="flex-1 overflow-auto pb-20 md:pb-0" onClick={() => { setUserMenuOpen(false); setMobileUserMenuOpen(false) }}>
           {children}
         </main>
       </div>
 
-      {/* Mobile bottom nav */}
+      {/* ════════════════════════════════════════
+          MOBILE BOTTOM NAV (hidden on desktop)
+      ════════════════════════════════════════ */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface-container-lowest border-t border-outline-variant/20 flex">
         {navItems.map(item => {
           const isActive = pathname.startsWith(item.href)
           return (
-            <Link key={item.href} href={item.href} className={clsx('flex-1 flex flex-col items-center justify-center py-2.5 gap-1 relative transition-colors', isActive ? 'text-primary' : 'text-on-surface-variant')}>
+            <Link
+              key={item.href}
+              href={item.href}
+              className={clsx(
+                'flex-1 flex flex-col items-center justify-center py-2.5 gap-1 relative transition-colors',
+                isActive ? 'text-primary' : 'text-on-surface-variant'
+              )}
+            >
               {isActive && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary" />}
               <span className="material-symbols-outlined text-[22px]">{item.icon}</span>
               <span className="font-label text-[9px] uppercase tracking-wider">{item.label}</span>
@@ -188,6 +247,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           )
         })}
       </nav>
+
     </div>
   )
 }
