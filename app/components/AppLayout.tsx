@@ -186,11 +186,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                       className="w-full flex items-center justify-between px-4 py-3 font-label text-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors"
                     >
                       <div className="flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[16px]">{theme === 'dark' ? 'light_mode' : 'dark_mode'}</span>
-                        {theme === 'dark' ? 'Jasny motyw' : 'Ciemny motyw'}
+                        <span className="material-symbols-outlined text-[16px]">{!isDark ? 'light_mode' : 'dark_mode'}</span>
+                        {!isDark ? 'Jasny motyw' : 'Ciemny motyw'}
                       </div>
-                      <div className={clsx('w-9 h-5 rounded-full transition-all duration-300 relative flex-shrink-0', theme === 'dark' ? 'bg-on-surface' : 'bg-surface-container-highest')}>
-                        <div className={clsx('absolute top-1 w-3 h-3 rounded-full bg-white shadow transition-all duration-300', theme === 'dark' ? 'left-5' : 'left-1')} />
+                      <div className={clsx('w-9 h-5 rounded-full transition-all duration-300 relative flex-shrink-0',isDark ? 'bg-on-surface' : 'bg-surface-container-highest')}>
+                        <div className={clsx('absolute top-1 w-3 h-3 rounded-full bg-white shadow transition-all duration-300', isDark  ? 'left-5' : 'left-1')} />
                       </div>
                     </button>
                     <Link
