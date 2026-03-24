@@ -18,9 +18,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setMounted(true)
-    const saved = localStorage.getItem('theme')
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    const shouldBeDark = saved ? saved === 'dark' : prefersDark
+      const saved = localStorage.getItem('theme')
+      const shouldBeDark = saved ? saved === 'dark' : false
     
     setIsDark(shouldBeDark)
     applyTheme(shouldBeDark)
