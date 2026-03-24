@@ -107,8 +107,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <span className="material-symbols-outlined text-[15px]">{isDark ? 'light_mode' : 'dark_mode'}</span>
                     {!isDark ? 'Light Mode' : 'Dark Mode'}
                   </div>
-                  <div className={clsx('w-8 h-4 rounded-full transition-all duration-300 relative flex-shrink-0', isDark ? 'bg-on-surface' : 'bg-surface-container-highest')}>
-                    <div className={clsx('absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-all duration-300', isDark ? 'left-4' : 'left-0.5')} />
+                  <div className={clsx('w-8 h-4 rounded-full transition-all duration-300 relative flex-shrink-0', isDark ? 'bg-secondary' : 'bg-surface-container-high')}>
+                    <div className={clsx('absolute top-0.5 w-3 h-3 rounded-full shadow transition-all duration-300', isDark ? 'left-4 bg-white' : 'left-0.5 bg-white')} />
                   </div>
                 </button>
                 <Link
@@ -157,7 +157,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-2">
             <Link
               href="/subscriptions/new"
-              className="flex items-center gap-1.5 bg-primary text-white font-label font-bold text-[11px] uppercase tracking-widest px-3 py-2 hover:opacity-80 transition-opacity"
+              className="flex items-center gap-1.5 bg-primary text-white font-label font-bold text-[11px] uppercase tracking-widest px-3 h-9 hover:opacity-80 transition-opacity"
             >
               <span className="material-symbols-outlined text-[14px]">add</span>
               <span className="hidden md:inline">New Entry</span>
@@ -167,7 +167,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <div className="md:hidden relative">
               <button
                 onClick={() => setMobileUserMenuOpen(v => !v)}
-                className="w-8 h-8 bg-primary flex items-center justify-center font-label font-bold text-[11px] text-white"
+                className="w-9 h-9 bg-primary flex items-center justify-center font-label font-bold text-[11px] text-white"
               >
                 {initials}
               </button>
@@ -189,8 +189,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                         <span className="material-symbols-outlined text-[16px]">{!isDark ? 'light_mode' : 'dark_mode'}</span>
                         {!isDark ? 'Jasny motyw' : 'Ciemny motyw'}
                       </div>
-                      <div className={clsx('w-9 h-5 rounded-full transition-all duration-300 relative flex-shrink-0',isDark ? 'bg-on-surface' : 'bg-surface-container-highest')}>
-                        <div className={clsx('absolute top-1 w-3 h-3 rounded-full bg-white shadow transition-all duration-300', isDark  ? 'left-5' : 'left-1')} />
+                      <div className={clsx('w-9 h-5 rounded-full transition-all duration-300 relative flex-shrink-0',isDark ? 'bg-secondary' : 'bg-surface-container-high')}>
+                        <div className={clsx('absolute top-1 w-3 h-3 rounded-full shadow transition-all duration-300', isDark  ? 'left-5 bg-white' : 'left-1 bg-white')} />
                       </div>
                     </button>
                     <Link

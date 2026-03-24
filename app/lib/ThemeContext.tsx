@@ -36,6 +36,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
             const next = !prev
             const html = document.documentElement
 
+            // Enable transition for smooth color change
+            html.classList.add('theme-transition')
+
             if (next) {
                 html.classList.add('dark')
                 html.setAttribute('data-theme', 'dark')
@@ -45,6 +48,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
             }
 
             localStorage.setItem('theme', next ? 'dark' : 'light')
+
+            // Remove transition class after animation completes
+            setTimeout(() => html.classList.remove('theme-transition'), 300)
+
             return next
         })
     }

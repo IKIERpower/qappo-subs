@@ -110,7 +110,7 @@ export default function SettingsPage() {
               </div>
               <div className="font-label text-sm text-on-surface-variant truncate">{user?.email}</div>
             </div>
-            <span className="font-label text-[10px] uppercase tracking-widest px-2 py-1 border border-secondary/30 text-secondary bg-secondary/5 flex-shrink-0">
+            <span className="font-label text-[10px] uppercase tracking-widest px-2 py-1 text-secondary font-bold flex-shrink-0">
               Active
             </span>
           </div>

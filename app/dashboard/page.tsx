@@ -8,19 +8,22 @@ import Link from 'next/link'
 import clsx from 'clsx'
 import { format, addDays, isWithinInterval, parseISO, differenceInDays } from 'date-fns'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
+import { useTheme } from '@/app/lib/ThemeContext'
 
 const CATEGORIES = [
-  { name: 'Entertainment', color: '#006D42' },
-  { name: 'Cloud/Hosting', color: '#000000' },
-  { name: 'Dev Tools', color: '#4B5563' },
-  { name: 'Utilities', color: '#7D0015' },
-  { name: 'Productivity', color: '#374151' },
-  { name: 'Development', color: '#1D4ED8' },
-  { name: 'Other', color: '#9CA3AF' },
+  { name: 'Entertainment', color: '#006D42', darkColor: '#34D399' },
+  { name: 'Cloud/Hosting', color: '#000000', darkColor: '#E5E7EB' },
+  { name: 'Dev Tools', color: '#4B5563', darkColor: '#9CA3AF' },
+  { name: 'Utilities', color: '#7D0015', darkColor: '#F87171' },
+  { name: 'Productivity', color: '#374151', darkColor: '#D1D5DB' },
+  { name: 'Development', color: '#1D4ED8', darkColor: '#60A5FA' },
+  { name: 'Other', color: '#9CA3AF', darkColor: '#D1D5DB' },
 ]
 
-function getCategoryColor(cat: string) {
-  return CATEGORIES.find(c => c.name === cat)?.color ?? '#9CA3AF'
+function getCategoryColor(cat: string, dark = false) {
+  const c = CATEGORIES.find(c => c.name === cat)
+  if (!c) return dark ? '#D1D5DB' : '#9CA3AF'
+  return dark ? c.darkColor : c.color
 }
 
 function monthlyEquivalent(sub: Subscription): number {
@@ -31,6 +34,7 @@ function monthlyEquivalent(sub: Subscription): number {
 
 export default function DashboardPage() {
   const { user } = useAuth()
+  const { isDark } = useTheme()
   const [subs, setSubs] = useState<Subscription[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -169,18 +173,18 @@ export default function DashboardPage() {
                 <AreaChart data={sparkData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="burnGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#000000" stopOpacity={0.08} />
-                      <stop offset="95%" stopColor="#000000" stopOpacity={0} />
+                      <stop offset="5%" stopColor={isDark ? '#FFFFFF' : '#000000'} stopOpacity={0.12} />
+                      <stop offset="95%" stopColor={isDark ? '#FFFFFF' : '#000000'} stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="0" stroke="#EDEEF0" vertical={false} />
-                  <XAxis dataKey="month" tick={{ fontFamily: 'Space Grotesk', fontSize: 10, fill: '#777777' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontFamily: 'Space Grotesk', fontSize: 10, fill: '#777777' }} axisLine={false} tickLine={false} tickFormatter={(v) => v.toFixed(0)} />
+                  <CartesianGrid strokeDasharray="0" stroke={isDark ? '#333333' : '#EDEEF0'} vertical={false} />
+                  <XAxis dataKey="month" tick={{ fontFamily: 'Space Grotesk', fontSize: 10, fill: isDark ? '#B0B0B0' : '#777777' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontFamily: 'Space Grotesk', fontSize: 10, fill: isDark ? '#B0B0B0' : '#777777' }} axisLine={false} tickLine={false} tickFormatter={(v) => v.toFixed(0)} />
                   <Tooltip
-                    contentStyle={{ background: '#fff', border: '1px solid #C6C6C6', borderRadius: 0, fontFamily: 'Space Grotesk', fontSize: 11 }}
+                    contentStyle={{ background: isDark ? '#1E1E1E' : '#fff', border: `1px solid ${isDark ? '#404040' : '#C6C6C6'}`, borderRadius: 0, fontFamily: 'Space Grotesk', fontSize: 11, color: isDark ? '#F5F5F5' : '#1A1C1D' }}
                     formatter={(v: number) => [`${v.toFixed(2)} PLN`, 'Monthly Spend']}
                   />
-                  <Area type="monotone" dataKey="value" stroke="#000000" strokeWidth={2} fill="url(#burnGrad)" dot={{ fill: '#000', r: 3, strokeWidth: 0 }} activeDot={{ r: 4 }} />
+                  <Area type="monotone" dataKey="value" stroke={isDark ? '#F5F5F5' : '#000000'} strokeWidth={2} fill="url(#burnGrad)" dot={{ fill: isDark ? '#F5F5F5' : '#000', r: 3, strokeWidth: 0 }} activeDot={{ r: 4 }} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -197,7 +201,7 @@ export default function DashboardPage() {
                   <div key={cat} className="group">
                     <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 flex-shrink-0" style={{ background: getCategoryColor(cat) }} />
+                        <span className="w-2 h-2 flex-shrink-0" style={{ background: getCategoryColor(cat, isDark) }} />
                         <span className="font-label text-xs text-on-surface">{cat}</span>
                       </div>
                       <span className="font-label text-xs tabular-nums text-on-surface-variant">{val.toFixed(2)} PLN</span>
@@ -205,7 +209,7 @@ export default function DashboardPage() {
                     <div className="h-0.5 bg-surface-container-high overflow-hidden">
                       <div
                         className="h-full transition-all duration-700"
-                        style={{ width: `${pct}%`, background: getCategoryColor(cat) }}
+                        style={{ width: `${pct}%`, background: getCategoryColor(cat, isDark) }}
                       />
                     </div>
                   </div>
