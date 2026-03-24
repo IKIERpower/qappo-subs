@@ -17,7 +17,7 @@ const navItems = [
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { user, loading, signOut } = useAuth()
-  const { theme, toggleTheme } = useTheme()
+  const { isDark, toggleTheme } = useTheme()
   const [signingOut, setSigningOut] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)   // desktop dropdown
   const [mobileUserMenuOpen, setMobileUserMenuOpen] = useState(false) // mobile dropdown
@@ -104,11 +104,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   className="w-full flex items-center justify-between px-4 py-3 font-label text-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors"
                 >
                   <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[15px]">{theme === 'dark' ? 'light_mode' : 'dark_mode'}</span>
-                    {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                    <span className="material-symbols-outlined text-[15px]">{isDark ? 'light_mode' : 'dark_mode'}</span>
+                    {!isDark ? 'Light Mode' : 'Dark Mode'}
                   </div>
-                  <div className={clsx('w-8 h-4 rounded-full transition-all duration-300 relative flex-shrink-0', theme === 'dark' ? 'bg-on-surface' : 'bg-surface-container-highest')}>
-                    <div className={clsx('absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-all duration-300', theme === 'dark' ? 'left-4' : 'left-0.5')} />
+                  <div className={clsx('w-8 h-4 rounded-full transition-all duration-300 relative flex-shrink-0', isDark ? 'bg-on-surface' : 'bg-surface-container-highest')}>
+                    <div className={clsx('absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-all duration-300', isDark ? 'left-4' : 'left-0.5')} />
                   </div>
                 </button>
                 <Link
