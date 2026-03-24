@@ -161,17 +161,17 @@ export default function EditSubscriptionPage() {
           <div>
             <FieldLabel>Website (optional)</FieldLabel>
             <div className="relative">
-              <Input type="url" value={form.website ?? ''} onChange={e => set('website', e.target.value)} placeholder="https://..." />
-              {form.website && (
-                <a
-                  href={form.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors"
-                >
-                  <span className="material-symbols-outlined text-[18px]">open_in_new</span>
-                </a>
-              )}
+              <Input type="url" value={form.website ?? ''} onChange={e => set('website', e.target.value)} placeholder="youtube.com" />
+              {/*{form.website && (*/}
+              {/*  <a*/}
+              {/*    href={form.website}*/}
+              {/*    target="_blank"*/}
+              {/*    rel="noopener noreferrer"*/}
+              {/*    className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors"*/}
+              {/*  >*/}
+              {/*    <span className="material-symbols-outlined text-[18px]">open_in_new</span>*/}
+              {/*  </a>*/}
+              {/*)}*/}
             </div>
           </div>
 

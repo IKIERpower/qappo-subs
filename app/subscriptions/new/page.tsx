@@ -85,13 +85,13 @@ export default function NewSubscriptionPage() {
     return errs
   }
 
-  function normalizeUrl(url: string): string {
-    if (!url) return ''
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      return `https://${url}`
-    }
-    return url
-  }
+  // function normalizeUrl(url: string): string {
+  //   if (!url) return ''
+  //   if (!url.startsWith('http://') && !url.startsWith('https://')) {
+  //     return `https://${url}`
+  //   }
+  //   return url
+  // }
 
   async function handleSubmit() {
     const errs = validate()
@@ -106,7 +106,7 @@ export default function NewSubscriptionPage() {
       next_billing_date: form.next_billing_date || null,
       status: form.status,
       notes: form.notes || null,
-      website: form.website ? normalizeUrl(form.website) : null,
+      // website: form.website ? normalizeUrl(form.website) : null,
       user_id: user!.id,
     })
     setSaving(false)
@@ -261,18 +261,18 @@ export default function NewSubscriptionPage() {
                 type="url"
                 value={form.website}
                 onChange={e => set('website', e.target.value)}
-                placeholder="https://..."
+                placeholder="youtube.comj"
               />
-              {form.website && (
-                <a
-                  href={form.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors"
-                >
-                  <span className="material-symbols-outlined text-[18px]">open_in_new</span>
-                </a>
-              )}
+              {/*{form.website && (*/}
+              {/*  <a*/}
+              {/*    href={form.website}*/}
+              {/*    target="_blank"*/}
+              {/*    rel="noopener noreferrer"*/}
+              {/*    className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors"*/}
+              {/*  >*/}
+              {/*    <span className="material-symbols-outlined text-[18px]">open_in_new</span>*/}
+              {/*  </a>*/}
+              {/*)}*/}
             </div>
           </div>
 
