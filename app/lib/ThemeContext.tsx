@@ -3,56 +3,59 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 
 interface ThemeContextType {
-  isDark: boolean
-  toggleTheme: () => void
+    isDark: boolean
+    toggleTheme: () => void
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  isDark: false,
-  toggleTheme: () => {},
+    isDark: false,
+    toggleTheme: () => {},
 })
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [isDark, setIsDark] = useState(false)
-  const [mounted, setMounted] = useState(false)
+    const [isDark, setIsDark] = useState(false)
 
-  useEffect(() => {
-    setMounted(true)
-      const saved = localStorage.getItem('theme')
-      const shouldBeDark = saved ? saved === 'dark' : false
-    
-    setIsDark(shouldBeDark)
-    applyTheme(shouldBeDark)
-  }, [])
+    useEffect(() => {
+        const saved = localStorage.getItem('theme')
+        const shouldBeDark = saved ? saved === 'dark' : false
 
-  function applyTheme(dark: boolean) {
-    const html = document.documentElement
-    if (dark) {
-      html.classList.add('dark')
-      html.setAttribute('data-theme', 'dark')
-    } else {
-      html.classList.remove('dark')
-      html.setAttribute('data-theme', 'light')
+        setIsDark(shouldBeDark)
+
+        const html = document.documentElement
+        if (shouldBeDark) {
+            html.classList.add('dark')
+            html.setAttribute('data-theme', 'dark')
+        } else {
+            html.classList.remove('dark')
+            html.setAttribute('data-theme', 'light')
+        }
+    }, [])
+
+    function toggleTheme() {
+        setIsDark(prev => {
+            const next = !prev
+            const html = document.documentElement
+
+            if (next) {
+                html.classList.add('dark')
+                html.setAttribute('data-theme', 'dark')
+            } else {
+                html.classList.remove('dark')
+                html.setAttribute('data-theme', 'light')
+            }
+
+            localStorage.setItem('theme', next ? 'dark' : 'light')
+            return next
+        })
     }
-    localStorage.setItem('theme', dark ? 'dark' : 'light')
-  }
 
-  function toggleTheme() {
-    const newDark = !isDark
-    setIsDark(newDark)
-    applyTheme(newDark)
-  }
-
-  if (!mounted) return <>{children}</>
-
-  return (
-    <ThemeContext.Provider value={{ isDark, toggleTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  )
+    return (
+        <ThemeContext.Provider value={{ isDark, toggleTheme }}>
+            {children}
+        </ThemeContext.Provider>
+    )
 }
 
 export function useTheme() {
-  return useContext(ThemeContext)
+    return useContext(ThemeContext)
 }
-
