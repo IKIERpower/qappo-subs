@@ -64,3 +64,6 @@ export interface Alert {
   label: string
   description?: string
 }
+
+export const supabase = getSupabaseBrowserClient()
+
