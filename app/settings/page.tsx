@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/app/lib/supabase'
 import { useAuth } from '@/app/lib/AuthContext'
 import { useTheme } from '@/app/lib/ThemeContext'
+import { useLocale } from '@/app/lib/LocaleContext'
+import { useTranslation } from '@/app/lib/translations'
 import AppLayout from '@/app/components/AppLayout'
 import Link from 'next/link'
 import clsx from 'clsx'
@@ -12,6 +14,8 @@ import clsx from 'clsx'
 export default function SettingsPage() {
   const router = useRouter()
   const { user, signOut } = useAuth()
+  const { locale, setLocale } = useLocale()
+  const t = useTranslation(locale)
   // const { theme, toggleTheme } = useTheme()
 
   // Password
@@ -33,9 +37,9 @@ export default function SettingsPage() {
   async function handleChangePassword() {
     setPasswordError('')
     setPasswordSuccess(false)
-    if (!newPassword) { setPasswordError('Podaj nowe hasło.'); return }
-    if (newPassword.length < 6) { setPasswordError('Minimum 6 znaków.'); return }
-    if (newPassword !== confirmPassword) { setPasswordError('Hasła nie są identyczne.'); return }
+    if (!newPassword) { setPasswordError(t.passwordRequired); return }
+    if (newPassword.length < 6) { setPasswordError(t.passwordMinLength); return }
+    if (newPassword !== confirmPassword) { setPasswordError(t.passwordMismatch); return }
 
     setSavingPassword(true)
     const { error } = await supabase.auth.updateUser({ password: newPassword })
@@ -57,27 +61,27 @@ export default function SettingsPage() {
     setDeleteError('')
 
     try {
-      // 1. Usuń dane użytkownika
+      // 1. Delete user data
       await supabase.from('subscriptions').delete().eq('user_id', user!.id)
       await supabase.from('alerts').delete().eq('user_id', user!.id)
       await supabase.from('profiles').delete().eq('id', user!.id)
 
-      // 2. Usuń konto z auth.users przez RPC (wymaga SQL z SETUP poniżej)
+      // 2. Delete account via RPC
       const { error: rpcError } = await supabase.rpc('delete_own_account')
 
       if (rpcError) {
-        // Fallback jeśli RPC nie istnieje – wyloguj i pokaż info
+        // Fallback if RPC doesn't exist – sign out and show info
         console.warn('RPC delete_own_account failed:', rpcError.message)
         await signOut()
         router.replace('/auth/login')
         return
       }
 
-      // 3. Wyloguj i przekieruj
+      // 3. Sign out and redirect
       await signOut()
       router.replace('/auth/login')
     } catch (err) {
-      setDeleteError('Coś poszło nie tak. Spróbuj ponownie.')
+      setDeleteError('Something went wrong. Please try again.')
       setDeleting(false)
     }
   }
@@ -91,14 +95,14 @@ export default function SettingsPage() {
 
         {/* Header */}
         <div>
-          <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Konfiguracja</div>
-          <h1 className="font-headline font-bold text-2xl tracking-tighter text-on-surface">Ustawienia konta</h1>
+          <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">{t.configuration}</div>
+          <h1 className="font-headline font-bold text-2xl tracking-tighter text-on-surface">{t.accountSettings}</h1>
         </div>
 
-        {/* ── Profil ── */}
+        {/* ── Profile ── */}
         <section className="bg-surface-container-lowest border border-outline-variant/15">
           <div className="px-6 py-4 border-b border-outline-variant/15">
-            <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Profil</div>
+            <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">{t.profile}</div>
           </div>
           <div className="px-6 py-5 flex items-center gap-4">
             <div className="w-12 h-12 bg-primary flex items-center justify-center font-label font-bold text-base text-white flex-shrink-0">
@@ -111,8 +115,34 @@ export default function SettingsPage() {
               <div className="font-label text-sm text-on-surface-variant truncate">{user?.email}</div>
             </div>
             <span className="font-label text-[10px] uppercase tracking-widest px-2 py-1 text-secondary font-bold flex-shrink-0">
-              Active
+              {t.active}
             </span>
+          </div>
+        </section>
+
+        {/* ── Language ── */}
+        <section className="bg-surface-container-lowest border border-outline-variant/15">
+          <div className="px-6 py-4 border-b border-outline-variant/15">
+            <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">{t.language}</div>
+          </div>
+          <div className="px-6 py-5">
+            <div className="font-label text-sm text-on-surface-variant mb-4">{t.selectLanguage}</div>
+            <div className="flex gap-2">
+              {(['en', 'pl'] as const).map(lang => (
+                <button
+                  key={lang}
+                  onClick={() => setLocale(lang)}
+                  className={clsx(
+                    'px-5 py-2.5 border font-label text-xs uppercase tracking-widest transition-all',
+                    locale === lang
+                      ? 'bg-primary text-white border-primary'
+                      : 'border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-on-surface'
+                  )}
+                >
+                  {lang === 'en' ? t.english : t.polish}
+                </button>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -151,14 +181,14 @@ export default function SettingsPage() {
         {/*  </div>*/}
         {/*</section>*/}
 
-        {/* ── Bezpieczeństwo ── */}
+        {/* ── Security ── */}
         <section className="bg-surface-container-lowest border border-outline-variant/15">
           <div className="px-6 py-4 border-b border-outline-variant/15">
-            <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Bezpieczeństwo</div>
+            <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">{t.security}</div>
           </div>
           <div className="px-6 py-5 space-y-4">
             <div>
-              <label className={labelClass}>Nowe hasło</label>
+              <label className={labelClass}>{t.newPassword}</label>
               <input
                 type="password"
                 value={newPassword}
@@ -168,7 +198,7 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label className={labelClass}>Potwierdź hasło</label>
+              <label className={labelClass}>{t.confirmPassword}</label>
               <input
                 type="password"
                 value={confirmPassword}
@@ -188,7 +218,7 @@ export default function SettingsPage() {
             {passwordSuccess && (
               <div className="flex items-center gap-2 py-2.5 px-3 bg-secondary/5 border border-secondary/20 animate-fade-in">
                 <span className="material-symbols-outlined text-[14px] text-secondary flex-shrink-0">check_circle</span>
-                <span className="font-label text-xs text-secondary">Hasło zostało zmienione.</span>
+                <span className="font-label text-xs text-secondary">{t.passwordChanged}</span>
               </div>
             )}
 
@@ -200,7 +230,7 @@ export default function SettingsPage() {
               {savingPassword && (
                 <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               )}
-              Zmień hasło
+              {t.changePassword}
             </button>
           </div>
         </section>
@@ -208,17 +238,17 @@ export default function SettingsPage() {
         {/* ── Powiadomienia ── */}
         <section className="bg-surface-container-lowest border border-outline-variant/15">
           <div className="px-6 py-4 border-b border-outline-variant/15">
-            <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Powiadomienia email</div>
+            <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">{t.emailNotifications}</div>
           </div>
           <div className="px-6 py-5">
             <p className="font-label text-sm text-on-surface-variant leading-relaxed mb-3">
-              Przypomnienia o odnowieniach są wysyłane automatycznie zgodnie z konfiguracją alertów.
-              Ustaw progi powiadomień w sekcji{' '}
-              <Link href="/alerts" className="text-on-surface underline hover:no-underline">Alerts</Link>.
+              {t.renewalReminders}
+              {t.setNotificationThresholds}{' '}
+              <Link href="/alerts" className="text-on-surface underline hover:no-underline">{t.alerts}</Link>.
             </p>
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 bg-secondary rounded-full animate-pulse flex-shrink-0" />
-              <span className="font-label text-xs text-secondary uppercase tracking-wider">Silnik powiadomień aktywny</span>
+              <span className="font-label text-xs text-secondary uppercase tracking-wider">{t.notificationEngineActive}</span>
             </div>
           </div>
         </section>
@@ -226,20 +256,20 @@ export default function SettingsPage() {
         {/* ── Danger Zone ── */}
         <section className="bg-surface-container-lowest border border-tertiary/25">
           <div className="px-6 py-4 border-b border-tertiary/15">
-            <div className="font-label text-[10px] uppercase tracking-widest text-tertiary">Strefa niebezpieczna</div>
+            <div className="font-label text-[10px] uppercase tracking-widest text-tertiary">{t.dangerZone}</div>
           </div>
           <div className="px-6 py-5 flex items-start justify-between gap-4">
             <div>
-              <div className="font-headline font-semibold text-sm text-on-surface">Usuń konto</div>
+              <div className="font-headline font-semibold text-sm text-on-surface">{t.deleteAccount}</div>
               <p className="font-label text-xs text-on-surface-variant mt-1">
-                Trwale usuwa wszystkie Twoje dane, subskrypcje i konto. Operacja jest nieodwracalna.
+                {t.deleteAccountDescription}
               </p>
             </div>
             <button
               onClick={() => { setShowDeleteModal(true); setDeleteConfirm(''); setDeleteError('') }}
               className="flex-shrink-0 border border-tertiary/40 text-tertiary font-label text-xs uppercase tracking-widest px-4 py-2 hover:bg-tertiary/5 transition-colors"
             >
-              Usuń konto
+              {t.deleteAccountConfirm}
             </button>
           </div>
         </section>
@@ -259,19 +289,17 @@ export default function SettingsPage() {
             {/* Modal header */}
             <div className="flex items-center gap-3 mb-1">
               <span className="material-symbols-outlined text-[22px] text-tertiary">warning</span>
-              <div className="font-headline font-bold text-base text-on-surface">Usuń konto</div>
+              <div className="font-headline font-bold text-base text-on-surface">{t.deleteAccountModal}</div>
             </div>
             <p className="font-label text-sm text-on-surface-variant mb-5 mt-2 leading-relaxed">
-              Zostaną usunięte wszystkie Twoje subskrypcje, alerty i dane konta.
-              Tej operacji <strong className="text-on-surface">nie można cofnąć</strong>.
+              {t.deleteWarning}
             </p>
 
             {/* Confirmation input */}
             <div className="mb-4">
               <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant block mb-2">
-                Wpisz{' '}
+                {t.typeEmailToConfirm}{' '}
                 <span className="text-on-surface font-semibold">{user?.email}</span>
-                {' '}aby potwierdzić
               </label>
               <input
                 type="email"
@@ -289,9 +317,9 @@ export default function SettingsPage() {
             {deleting && (
               <div className="mb-4 space-y-2">
                 {[
-                  'Usuwanie subskrypcji...',
-                  'Usuwanie alertów...',
-                  'Usuwanie konta...',
+                  t.deletingSubscriptions,
+                  t.deletingAlerts,
+                  t.deletingAccount,
                 ].map((step, i) => (
                   <div key={i} className="flex items-center gap-2 font-label text-xs text-on-surface-variant animate-fade-in" style={{ animationDelay: `${i * 400}ms` }}>
                     <span className="w-3 h-3 border-2 border-outline-variant/30 border-t-tertiary rounded-full animate-spin flex-shrink-0" />
@@ -317,27 +345,27 @@ export default function SettingsPage() {
                 className="flex-1 flex items-center justify-center gap-2 bg-tertiary text-white font-label font-bold text-xs uppercase tracking-widest py-2.5 hover:opacity-80 transition-opacity disabled:opacity-40"
               >
                 {deleting && <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                {deleting ? 'Usuwanie...' : 'Usuń na zawsze'}
+                {deleting ? t.deleting : t.deleteForever}
               </button>
               <button
                 onClick={() => { setShowDeleteModal(false); setDeleteConfirm(''); setDeleteError('') }}
                 disabled={deleting}
                 className="px-4 py-2.5 border border-outline-variant/30 font-label text-xs text-on-surface-variant hover:text-on-surface transition-colors disabled:opacity-50"
               >
-                Anuluj
+                {t.cancel}
               </button>
             </div>
 
             {/* SQL hint */}
             <p className="mt-4 font-label text-[10px] text-on-surface-variant leading-relaxed">
-              Wymaga funkcji <code className="bg-surface-container px-1 py-0.5 text-on-surface">delete_own_account</code> w Supabase.{' '}
+              {t.requiresFunction} <code className="bg-surface-container px-1 py-0.5 text-on-surface">delete_own_account</code> {t.inSupabase}{' '}
               <a
                 href="https://github.com"
                 className="underline hover:no-underline"
                 target="_blank"
                 rel="noreferrer"
               >
-                Zobacz SQL →
+                {t.viewSQL}
               </a>
             </p>
           </div>

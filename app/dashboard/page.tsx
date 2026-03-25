@@ -9,6 +9,8 @@ import clsx from 'clsx'
 import { format, addDays, isWithinInterval, parseISO, differenceInDays } from 'date-fns'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { useTheme } from '@/app/lib/ThemeContext'
+import { useLocale } from '@/app/lib/LocaleContext'
+import { useTranslation } from '@/app/lib/translations'
 
 const CATEGORIES = [
   { name: 'Entertainment', color: '#006D42', darkColor: '#34D399' },
@@ -35,6 +37,8 @@ function monthlyEquivalent(sub: Subscription): number {
 export default function DashboardPage() {
   const { user } = useAuth()
   const { isDark } = useTheme()
+  const { locale } = useLocale()
+  const t = useTranslation(locale)
   const [subs, setSubs] = useState<Subscription[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -94,15 +98,15 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
-      <div className="p-4 md:p-8 max-w-[1400px] space-y-6 md:space-y-10">
+      <div className="p-4 md:p-8 space-y-6 md:space-y-10">
 
         {/* KPI Row */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 animate-fade-up">
-          {/* Monthly Burn */}
-          {/* Monthly Burn */}
-          <div className="bg-surface-container-lowest border border-outline-variant/15 p-5 md:p-8 flex flex-col justify-between min-h-[100px] md:min-h-[180px] group hover:border-outline-variant/40 transition-all duration-200">
-            <div>
-              <span className="font-label text-[10px] font-medium uppercase tracking-widest text-on-surface-variant">Monthly Burn</span>
+           {/* Monthly Burn */}
+           {/* Monthly Burn */}
+           <div className="bg-surface-container-lowest border border-outline-variant/15 p-5 md:p-8 flex flex-col justify-between min-h-[100px] md:min-h-[180px] group hover:border-outline-variant/40 transition-all duration-200">
+             <div>
+               <span className="font-label text-[10px] font-medium uppercase tracking-widest text-on-surface-variant">{t.monthlyBurn}</span>
               <div className="flex items-baseline gap-2 mt-1">
                 <span className="font-label text-2xl md:text-4xl font-bold tracking-tighter tabular-nums text-on-surface">
                   {monthlyBurn.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -110,37 +114,37 @@ export default function DashboardPage() {
                 <span className="font-label text-sm text-on-surface-variant font-medium">PLN</span>
               </div>
             </div>
-            <div className="flex items-center justify-between mt-3 md:mt-0">
-              <span className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest">/ month recurring</span>
-              <span className="flex items-center gap-1 font-label text-xs font-bold text-tertiary">
-                <span className="material-symbols-outlined text-[13px]">arrow_upward</span>4.2%
-              </span>
-            </div>
-          </div>
+             <div className="flex items-center justify-between mt-3 md:mt-0">
+               <span className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest">{t.monthRecurring}</span>
+               <span className="flex items-center gap-1 font-label text-xs font-bold text-tertiary">
+                 <span className="material-symbols-outlined text-[13px]">arrow_upward</span>4.2%
+               </span>
+             </div>
+           </div>
 
-          {/* Active Subscriptions */}
-          <div className="bg-surface-container-low p-5 md:p-8 flex flex-col justify-between min-h-[100px] md:min-h-[180px] hover:bg-surface-container transition-all duration-200">
-            <div>
-              <span className="font-label text-[10px] font-medium uppercase tracking-widest text-on-surface-variant">Active Licenses</span>
-              <div className="flex items-baseline gap-2 mt-1">
-                <span className="font-label text-2xl md:text-4xl font-bold tracking-tighter tabular-nums text-on-surface">{activeSubs.length}</span>
-                <span className="font-label text-sm text-on-surface-variant">subscriptions</span>
-              </div>
-            </div>
-            <div className="flex items-center justify-between mt-3 md:mt-0">
-              <span className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest">currently active</span>
-              <span className="flex items-center gap-1 font-label text-xs font-bold text-secondary">
-              <Link href="/subscriptions" className="font-label text-[10px] uppercase tracking-wider text-on-surface-variant hover:text-on-surface flex items-center gap-1 transition-colors">
-                Subscriptions <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
-              </Link>
-              </span>
-            </div>
-          </div>
+           {/* Active Subscriptions */}
+           <div className="bg-surface-container-low p-5 md:p-8 flex flex-col justify-between min-h-[100px] md:min-h-[180px] hover:bg-surface-container transition-all duration-200">
+             <div>
+               <span className="font-label text-[10px] font-medium uppercase tracking-widest text-on-surface-variant">{t.activeLicenses}</span>
+               <div className="flex items-baseline gap-2 mt-1">
+                 <span className="font-label text-2xl md:text-4xl font-bold tracking-tighter tabular-nums text-on-surface">{activeSubs.length}</span>
+                 <span className="font-label text-sm text-on-surface-variant">{t.subscriptionsCount}</span>
+               </div>
+             </div>
+             <div className="flex items-center justify-between mt-3 md:mt-0">
+               <span className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest">{t.currentlyActive}</span>
+               <span className="flex items-center gap-1 font-label text-xs font-bold text-secondary">
+               <Link href="/subscriptions" className="font-label text-[10px] uppercase tracking-wider text-on-surface-variant hover:text-on-surface flex items-center gap-1 transition-colors">
+                 {t.subscriptionsNav} <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
+               </Link>
+               </span>
+             </div>
+           </div>
 
-          {/* Annual Projection */}
-          <div className="bg-surface-container-lowest border border-outline-variant/15 p-5 md:p-8 flex flex-col justify-between min-h-[100px] md:min-h-[180px] hover:border-outline-variant/40 transition-all duration-200">
-            <div>
-              <span className="font-label text-[10px] font-medium uppercase tracking-widest text-on-surface-variant">Annual Projection</span>
+           {/* Annual Projection */}
+           <div className="bg-surface-container-lowest border border-outline-variant/15 p-5 md:p-8 flex flex-col justify-between min-h-[100px] md:min-h-[180px] hover:border-outline-variant/40 transition-all duration-200">
+             <div>
+               <span className="font-label text-[10px] font-medium uppercase tracking-widest text-on-surface-variant">{t.annualProjection}</span>
               <div className="flex items-baseline gap-2 mt-1">
                 <span className="font-label text-2xl md:text-4xl font-bold tracking-tighter tabular-nums text-on-surface">
                   {(annualProjection / 1000).toFixed(1)}K
@@ -148,26 +152,26 @@ export default function DashboardPage() {
                 <span className="font-label text-sm text-on-surface-variant font-medium">PLN</span>
               </div>
             </div>
-            <div className="flex items-center justify-between mt-3 md:mt-0">
-              <span className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest">12-month outflow</span>
-              <Link href="/analytics" className="font-label text-[10px] uppercase tracking-wider text-on-surface-variant hover:text-on-surface flex items-center gap-1 transition-colors">
-                Forecast <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
-              </Link>
-            </div>
+             <div className="flex items-center justify-between mt-3 md:mt-0">
+               <span className="font-label text-[10px] text-on-surface-variant uppercase tracking-widest">{t.monthOutflow}</span>
+               <Link href="/analytics" className="font-label text-[10px] uppercase tracking-wider text-on-surface-variant hover:text-on-surface flex items-center gap-1 transition-colors">
+                 {t.forecast} <span className="material-symbols-outlined text-[12px]">arrow_forward</span>
+               </Link>
+             </div>
           </div>
         </section>
 
         {/* Spend Trend + Category Split */}
         <section className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-4 md:gap-6 animate-fade-up delay-100">
-          {/* Sparkline chart */}
-          <div className="bg-surface-container-lowest border border-outline-variant/15 p-8">
-            <div className="flex items-end justify-between mb-8">
-              <div>
-                <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">6-Month Trend</div>
-                <div className="font-headline font-semibold text-xl tracking-tight text-on-surface">Spend Overview</div>
-              </div>
-              <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">PLN / MONTH</span>
-            </div>
+           {/* Sparkline chart */}
+           <div className="bg-surface-container-lowest border border-outline-variant/15 p-8">
+             <div className="flex items-end justify-between mb-8">
+               <div>
+                 <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">{t.sixMonthTrend}</div>
+                 <div className="font-headline font-semibold text-xl tracking-tight text-on-surface">{t.spendOverview}</div>
+               </div>
+               <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">{t.plnMonth}</span>
+             </div>
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={sparkData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
@@ -190,10 +194,10 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Category Distribution */}
-          <div className="bg-surface-container-low p-6 flex flex-col">
-            <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Category Split</div>
-            <div className="font-headline font-semibold text-lg tracking-tight text-on-surface mb-6">Distribution</div>
+           {/* Category Distribution */}
+           <div className="bg-surface-container-low p-6 flex flex-col">
+             <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">{t.categorySplit}</div>
+             <div className="font-headline font-semibold text-lg tracking-tight text-on-surface mb-6">{t.distribution}</div>
             <div className="space-y-3 flex-1">
               {catEntries.map(([cat, val]) => {
                 const pct = catTotal > 0 ? (val / catTotal) * 100 : 0
@@ -219,21 +223,21 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* Renewal Timeline */}
-        <section className="animate-fade-up delay-200">
-          <div className="flex items-end justify-between mb-6">
-            <div>
-              <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Upcoming</div>
-              <div className="font-headline font-semibold text-xl tracking-tight text-on-surface">Renewal Timeline</div>
-            </div>
-            <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Next 14 Days</span>
-          </div>
-          {upcoming.length === 0 ? (
-            <div className="bg-surface-container-low p-12 text-center">
-              <span className="material-symbols-outlined text-[32px] text-on-surface-variant mb-3 block">event_available</span>
-              <p className="font-label text-sm text-on-surface-variant">No upcoming renewals in the next 14 days.</p>
-            </div>
-          ) : (
+         {/* Renewal Timeline */}
+         <section className="animate-fade-up delay-200">
+           <div className="flex items-end justify-between mb-6">
+             <div>
+               <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">{t.upcoming}</div>
+               <div className="font-headline font-semibold text-xl tracking-tight text-on-surface">{t.renewalTimeline}</div>
+             </div>
+             <span className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">{t.next14Days}</span>
+           </div>
+           {upcoming.length === 0 ? (
+             <div className="bg-surface-container-low p-12 text-center">
+               <span className="material-symbols-outlined text-[32px] text-on-surface-variant mb-3 block">event_available</span>
+               <p className="font-label text-sm text-on-surface-variant">{t.noUpcomingRenewals}</p>
+             </div>
+           ) : (
             <div className="bg-surface-container-low border border-outline-variant/15 divide-y divide-outline-variant/10">
               {upcoming.map((sub, i) => {
                 const days = differenceInDays(sub.d, today)
@@ -262,7 +266,7 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-8">
                       <div className="text-right">
                         <div className={clsx('font-label text-xs font-bold uppercase tracking-wider', urgent ? 'text-tertiary' : 'text-on-surface-variant')}>
-                          {days === 0 ? 'TODAY' : `T-${days} day${days !== 1 ? 's' : ''}`}
+                          {days === 0 ? t.today : `T-${days} ${days !== 1 ? t.days : t.day}`}
                         </div>
                         <div className="font-label text-[10px] text-on-surface-variant">{format(sub.d, 'dd MMM yyyy')}</div>
                       </div>

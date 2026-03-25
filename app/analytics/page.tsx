@@ -108,7 +108,7 @@ export default function AnalyticsPage() {
 
   return (
     <AppLayout>
-      <div className="p-4 md:p-8 space-y-5 md:space-y-8 max-w-[1400px]">
+      <div className="p-4 md:p-8 space-y-5 md:space-y-8">
 
         {/* ── Header ── */}
         <div className="animate-fade-up">

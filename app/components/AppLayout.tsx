@@ -6,24 +6,34 @@ import { useState } from 'react'
 import clsx from 'clsx'
 import { useAuth } from '@/app/lib/AuthContext'
 import { useTheme } from '@/app/lib/ThemeContext'
+import { useLocale } from '@/app/lib/LocaleContext'
+import { useTranslation } from '@/app/lib/translations'
 
 const navItems = [
-  { href: '/dashboard',     icon: 'dashboard',     label: 'Dashboard' },
-  { href: '/subscriptions', icon: 'subscriptions', label: 'Subscriptions' },
-  { href: '/analytics',     icon: 'analytics',     label: 'Analytics' },
-  { href: '/alerts',        icon: 'notifications', label: 'Alerts' },
+  { href: '/dashboard',     icon: 'dashboard',     labelKey: 'dashboard' },
+  { href: '/subscriptions', icon: 'subscriptions', labelKey: 'subscriptionsNav' },
+  { href: '/analytics',     icon: 'analytics',     labelKey: 'analytics' },
+  { href: '/alerts',        icon: 'notifications', labelKey: 'alerts' },
 ]
+
+const pageMap: Record<string, { icon: string; labelKey: string }> = {
+  '/settings': { icon: 'settings', labelKey: 'settings' },
+}
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { user, loading, signOut } = useAuth()
   const { isDark, toggleTheme } = useTheme()
+  const { locale } = useLocale()
+  const t = useTranslation(locale)
   const [signingOut, setSigningOut] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)   // desktop dropdown
   const [mobileUserMenuOpen, setMobileUserMenuOpen] = useState(false) // mobile dropdown
 
   const initials = (user?.email?.split('@')[0] ?? 'U').slice(0, 2).toUpperCase()
   const currentNav = navItems.find(n => pathname.startsWith(n.href))
+  const currentPageData = currentNav ?? pageMap[pathname] ?? { icon: 'dashboard', labelKey: 'dashboard' }
+  const currentPageLabel = t[currentPageData.labelKey as keyof typeof t] || 'Dashboard'
 
   async function handleSignOut() {
     setSigningOut(true)
@@ -70,7 +80,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <span className={clsx('material-symbols-outlined text-[20px]', isActive ? 'text-on-surface' : 'text-on-surface-variant')}>
                   {item.icon}
                 </span>
-                <span className="font-label text-sm tracking-tight">{item.label}</span>
+                <span className="font-label text-sm tracking-tight">{t[item.labelKey as keyof typeof t]}</span>
               </Link>
             )
           })}
@@ -96,7 +106,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             {userMenuOpen && (
               <div className="absolute bottom-full left-0 right-0 mb-1 bg-surface-container-lowest border border-outline-variant/30 shadow-sm animate-fade-up z-50">
                 <div className="px-4 py-3 border-b border-outline-variant/20">
-                  <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Signed in as</div>
+                  <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">{t.signedInAs}</div>
                   <div className="font-label text-xs text-on-surface font-medium mt-0.5 truncate">{user?.email}</div>
                 </div>
                 <button
@@ -105,7 +115,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 >
                   <div className="flex items-center gap-2">
                     <span className="material-symbols-outlined text-[15px]">{isDark ? 'light_mode' : 'dark_mode'}</span>
-                    {!isDark ? 'Light Mode' : 'Dark Mode'}
+                    {!isDark ? t.lightMode : t.darkMode}
                   </div>
                   <div className={clsx('w-8 h-4 rounded-full transition-all duration-300 relative flex-shrink-0', isDark ? 'bg-secondary' : 'bg-surface-container-high')}>
                     <div className={clsx('absolute top-0.5 w-3 h-3 rounded-full shadow transition-all duration-300', isDark ? 'left-4 bg-white' : 'left-0.5 bg-white')} />
@@ -117,7 +127,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   className="flex items-center gap-2 px-4 py-3 font-label text-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors"
                 >
                   <span className="material-symbols-outlined text-[15px]">settings</span>
-                  Settings
+                  {t.settings}
                 </Link>
                 <button
                   onClick={handleSignOut}
@@ -128,7 +138,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     ? <span className="w-3.5 h-3.5 border-2 border-outline-variant/30 border-t-on-surface-variant rounded-full animate-spin" />
                     : <span className="material-symbols-outlined text-[15px]">logout</span>
                   }
-                  Sign out
+                  {t.signOut}
                 </button>
               </div>
             )}
@@ -146,10 +156,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           {/* Left: page title */}
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-[18px] text-on-surface-variant hidden md:block">
-              {currentNav?.icon ?? 'dashboard'}
+              {currentPageData.icon}
             </span>
             <span className="font-headline font-semibold text-sm tracking-tight text-on-surface">
-              {currentNav?.label ?? 'Dashboard'}
+              {currentPageLabel}
             </span>
           </div>
 
@@ -160,7 +170,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               className="flex items-center gap-1.5 bg-primary text-white font-label font-bold text-[11px] uppercase tracking-widest px-3 h-9 hover:opacity-80 transition-opacity"
             >
               <span className="material-symbols-outlined text-[14px]">add</span>
-              <span className="hidden md:inline">New Entry</span>
+              <span className="hidden md:inline">{t.newEntry}</span>
             </Link>
 
             {/* Mobile-only: user avatar in topbar */}
@@ -177,7 +187,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <div className="fixed inset-0 z-40" onClick={() => setMobileUserMenuOpen(false)} />
                   <div className="absolute right-0 top-full mt-2 w-64 bg-surface-container-lowest border border-outline-variant/30 shadow-lg animate-fade-up z-50">
                     <div className="px-4 py-3 border-b border-outline-variant/20">
-                      <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">Zalogowany jako</div>
+                      <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">{t.signedInAs}</div>
                       <div className="font-label text-xs text-on-surface font-medium mt-0.5 truncate">{user?.email}</div>
                     </div>
                     {/* Dark mode — only mobile */}
@@ -187,7 +197,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     >
                       <div className="flex items-center gap-2">
                         <span className="material-symbols-outlined text-[16px]">{!isDark ? 'light_mode' : 'dark_mode'}</span>
-                        {!isDark ? 'Jasny motyw' : 'Ciemny motyw'}
+                        {!isDark ? t.lightMode : t.darkMode}
                       </div>
                       <div className={clsx('w-9 h-5 rounded-full transition-all duration-300 relative flex-shrink-0',isDark ? 'bg-secondary' : 'bg-surface-container-high')}>
                         <div className={clsx('absolute top-1 w-3 h-3 rounded-full shadow transition-all duration-300', isDark  ? 'left-5 bg-white' : 'left-1 bg-white')} />
@@ -199,7 +209,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                       className="flex items-center gap-2 px-4 py-3 font-label text-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors border-t border-outline-variant/10"
                     >
                       <span className="material-symbols-outlined text-[16px]">settings</span>
-                      Ustawienia
+                      {t.settings}
                     </Link>
                     <button
                       onClick={handleSignOut}
@@ -210,7 +220,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                         ? <span className="w-3.5 h-3.5 border-2 border-outline-variant/30 border-t-on-surface-variant rounded-full animate-spin" />
                         : <span className="material-symbols-outlined text-[16px]">logout</span>
                       }
-                      Wyloguj
+                      {t.signOut}
                     </button>
                   </div>
                 </>
@@ -242,7 +252,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             >
               {isActive && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary" />}
               <span className="material-symbols-outlined text-[22px]">{item.icon}</span>
-              <span className="font-label text-[9px] uppercase tracking-wider">{item.label}</span>
+              <span className="font-label text-[9px] uppercase tracking-wider">{t[item.labelKey as keyof typeof t]}</span>
             </Link>
           )
         })}

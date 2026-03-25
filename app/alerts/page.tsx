@@ -80,7 +80,7 @@ export default function AlertsPage() {
 
   return (
     <AppLayout>
-      <div className="p-4 lg:p-8 max-w-3xl space-y-6 lg:space-y-10">
+      <div className="p-4 lg:p-8 max-w-3xl mx-auto space-y-6 lg:space-y-10">
 
         {/* Header */}
         <div className="flex items-start justify-between animate-fade-up">

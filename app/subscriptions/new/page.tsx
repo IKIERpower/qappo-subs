@@ -9,6 +9,7 @@ import Link from 'next/link'
 import clsx from 'clsx'
 
 const CATEGORIES = ['Entertainment', 'Cloud/Hosting', 'Dev Tools', 'Development', 'Utilities', 'Productivity', 'Other']
+const CURRENCIES = ['PLN', 'USD', 'EUR', 'GBP']
 
 interface FormState {
   name: string
@@ -72,6 +73,8 @@ export default function NewSubscriptionPage() {
   const [form, setForm] = useState<FormState>(INITIAL)
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({})
+  const [customCurrency, setCustomCurrency] = useState(false)
+  const [customCurrencyValue, setCustomCurrencyValue] = useState('')
 
   function set(key: keyof FormState, value: string) {
     setForm(prev => ({ ...prev, [key]: value }))
@@ -185,19 +188,60 @@ export default function NewSubscriptionPage() {
             </div>
             <div>
               <FieldLabel>Currency</FieldLabel>
-              <Select value={form.currency} onChange={e => set('currency', e.target.value)}>
-                <option value="PLN">PLN</option>
-                <option value="USD">USD</option>
-                <option value="EUR">EUR</option>
-                <option value="GBP">GBP</option>
-              </Select>
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-1">
+                {CURRENCIES.map(c => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => { set('currency', c); setCustomCurrency(false) }}
+                    className={clsx(
+                      'py-3 font-label text-xs uppercase tracking-wider border transition-all',
+                      !customCurrency && form.currency === c
+                        ? 'bg-primary text-white border-primary'
+                        : 'bg-surface-container-low border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-on-surface'
+                    )}
+                  >
+                    {c}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => { setCustomCurrency(true); set('currency', customCurrencyValue || '') }}
+                  className={clsx(
+                    'py-3 font-label text-xs uppercase tracking-wider border transition-all',
+                    customCurrency
+                      ? 'bg-primary text-white border-primary'
+                      : 'bg-surface-container-low border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-on-surface'
+                  )}
+                >
+                  Other
+                </button>
+              </div>
+              <div className={clsx('expand-wrapper', customCurrency && 'open')}>
+                <div className="expand-inner">
+                  <input
+                    type="text"
+                    value={customCurrencyValue}
+                    onChange={e => {
+                      const v = e.target.value.toUpperCase().slice(0, 5)
+                      setCustomCurrencyValue(v)
+                      set('currency', v)
+                    }}
+                    placeholder="e.g. CHF, JPY"
+                    maxLength={5}
+                    autoFocus={customCurrency}
+                    tabIndex={customCurrency ? 0 : -1}
+                    className="w-full mt-2 px-4 py-3 bg-surface-container-low border border-outline-variant/30 text-on-surface font-label text-sm placeholder:text-on-surface-variant focus:outline-none focus:border-primary transition-colors"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <FieldLabel>Billing Cycle</FieldLabel>
-              <div className="flex">
+              <div className="flex gap-1">
                 {(['monthly', 'yearly'] as const).map(cycle => (
                   <button
                     key={cycle}
@@ -234,7 +278,7 @@ export default function NewSubscriptionPage() {
             </div>
             <div>
               <FieldLabel>Status</FieldLabel>
-              <div className="flex">
+              <div className="flex gap-1">
                 {(['active', 'paused'] as const).map(s => (
                   <button
                     key={s}
@@ -261,7 +305,7 @@ export default function NewSubscriptionPage() {
                 type="url"
                 value={form.website}
                 onChange={e => set('website', e.target.value)}
-                placeholder="youtube.comj"
+                placeholder="youtube.com"
               />
               {/*{form.website && (*/}
               {/*  <a*/}

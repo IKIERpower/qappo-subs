@@ -7,6 +7,7 @@ import AppLayout from '@/app/components/AppLayout'
 import clsx from 'clsx'
 
 const CATEGORIES = ['Entertainment', 'Cloud/Hosting', 'Dev Tools', 'Utilities', 'Productivity', 'Development', 'Other']
+const CURRENCIES = ['PLN', 'USD', 'EUR', 'GBP']
 
 interface SubscriptionFormProps {
   initial?: Partial<Subscription>
@@ -17,6 +18,10 @@ export default function SubscriptionForm({ initial, id }: SubscriptionFormProps)
   const router = useRouter()
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [customCurrency, setCustomCurrency] = useState(!CURRENCIES.includes(initial?.currency ?? 'PLN'))
+  const [customCurrencyValue, setCustomCurrencyValue] = useState(
+    !CURRENCIES.includes(initial?.currency ?? 'PLN') ? (initial?.currency ?? '') : ''
+  )
 
   const [form, setForm] = useState({
     name: initial?.name ?? '',
@@ -122,12 +127,53 @@ export default function SubscriptionForm({ initial, id }: SubscriptionFormProps)
             </div>
             <div>
               <label className={labelClass}>Currency</label>
-              <select value={form.currency} onChange={e => set('currency', e.target.value)} className={inputClass('currency')}>
-                <option value="PLN">PLN</option>
-                <option value="USD">USD</option>
-                <option value="EUR">EUR</option>
-                <option value="GBP">GBP</option>
-              </select>
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-1">
+                {CURRENCIES.map(c => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => { set('currency', c); setCustomCurrency(false) }}
+                    className={clsx(
+                      'py-3 font-label text-xs uppercase tracking-wider border transition-all',
+                      !customCurrency && form.currency === c
+                        ? 'bg-primary text-white border-primary'
+                        : 'bg-surface-container-low border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-on-surface'
+                    )}
+                  >
+                    {c}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => { setCustomCurrency(true); set('currency', customCurrencyValue || '') }}
+                  className={clsx(
+                    'py-3 font-label text-xs uppercase tracking-wider border transition-all',
+                    customCurrency
+                      ? 'bg-primary text-white border-primary'
+                      : 'bg-surface-container-low border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-on-surface'
+                  )}
+                >
+                  Other
+                </button>
+              </div>
+              <div className={clsx('expand-wrapper', customCurrency && 'open')}>
+                <div className="expand-inner">
+                  <input
+                    type="text"
+                    value={customCurrencyValue}
+                    onChange={e => {
+                      const v = e.target.value.toUpperCase().slice(0, 5)
+                      setCustomCurrencyValue(v)
+                      set('currency', v)
+                    }}
+                    placeholder="e.g. CHF, JPY"
+                    maxLength={5}
+                    autoFocus={customCurrency}
+                    tabIndex={customCurrency ? 0 : -1}
+                    className={clsx(inputClass('currency'), 'mt-2')}
+                  />
+                </div>
+              </div>
             </div>
           </div>
 

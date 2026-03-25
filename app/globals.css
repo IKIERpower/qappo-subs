@@ -130,11 +130,39 @@ html.theme-transition *::after {
   }
 }
 
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .animate-fade-up {
   animation: fadeUp 0.5s ease-out forwards;
 }
 
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out forwards;
+}
+
+/* Smooth expand wrapper — use on a parent div around the content */
+.expand-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.expand-wrapper.open {
+  grid-template-rows: 1fr;
+}
+.expand-wrapper > .expand-inner {
+  overflow: hidden;
+}
+
+.animate-slide-down {
+  animation: slideDown 0.18s ease-out forwards;
 }
 

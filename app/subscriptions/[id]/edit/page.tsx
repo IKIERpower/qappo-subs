@@ -8,6 +8,7 @@ import Link from 'next/link'
 import clsx from 'clsx'
 
 const CATEGORIES = ['Entertainment', 'Cloud/Hosting', 'Dev Tools', 'Development', 'Utilities', 'Productivity', 'Other']
+const CURRENCIES = ['PLN', 'USD', 'EUR', 'GBP']
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant block mb-2">{children}</label>
@@ -34,11 +35,19 @@ export default function EditSubscriptionPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState<Partial<Subscription>>({})
+  const [customCurrency, setCustomCurrency] = useState(false)
+  const [customCurrencyValue, setCustomCurrencyValue] = useState('')
 
   useEffect(() => {
     async function load() {
       const { data } = await supabase.from('subscriptions').select('*').eq('id', id).single()
-      if (data) setForm(data)
+      if (data) {
+        setForm(data)
+        if (!CURRENCIES.includes(data.currency)) {
+          setCustomCurrency(true)
+          setCustomCurrencyValue(data.currency)
+        }
+      }
       setLoading(false)
     }
     load()
@@ -103,24 +112,67 @@ export default function EditSubscriptionPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <FieldLabel>Cost</FieldLabel>
-              <Input type="number" value={form.cost ?? ''} onChange={e => set('cost', parseFloat(e.target.value))} step="0.01" />
+              <div className="relative">
+                <Input type="number" value={form.cost ?? ''} onChange={e => set('cost', parseFloat(e.target.value))} step="0.01" className="pr-16" />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 font-label text-xs text-on-surface-variant">{form.currency ?? 'PLN'}</span>
+              </div>
             </div>
             <div>
               <FieldLabel>Currency</FieldLabel>
-              <select
-                value={form.currency ?? 'PLN'}
-                onChange={e => set('currency', e.target.value)}
-                className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant/30 text-on-surface font-label text-sm focus:outline-none focus:border-primary transition-colors"
-              >
-                {['PLN', 'USD', 'EUR', 'GBP'].map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-1">
+                {CURRENCIES.map(c => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => { set('currency', c); setCustomCurrency(false) }}
+                    className={clsx(
+                      'py-3 font-label text-xs uppercase tracking-wider border transition-all',
+                      !customCurrency && form.currency === c
+                        ? 'bg-primary text-white border-primary'
+                        : 'bg-surface-container-low border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-on-surface'
+                    )}
+                  >
+                    {c}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => { setCustomCurrency(true); set('currency', customCurrencyValue || '') }}
+                  className={clsx(
+                    'py-3 font-label text-xs uppercase tracking-wider border transition-all',
+                    customCurrency
+                      ? 'bg-primary text-white border-primary'
+                      : 'bg-surface-container-low border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-on-surface'
+                  )}
+                >
+                  Other
+                </button>
+              </div>
+              <div className={clsx('expand-wrapper', customCurrency && 'open')}>
+                <div className="expand-inner">
+                  <input
+                    type="text"
+                    value={customCurrencyValue}
+                    onChange={e => {
+                      const v = e.target.value.toUpperCase().slice(0, 5)
+                      setCustomCurrencyValue(v)
+                      set('currency', v)
+                    }}
+                    placeholder="e.g. CHF, JPY"
+                    maxLength={5}
+                    autoFocus={customCurrency}
+                    tabIndex={customCurrency ? 0 : -1}
+                    className="w-full mt-2 px-4 py-3 bg-surface-container-low border border-outline-variant/30 text-on-surface font-label text-sm placeholder:text-on-surface-variant focus:outline-none focus:border-primary transition-colors"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <FieldLabel>Billing Cycle</FieldLabel>
-              <div className="flex">
+              <div className="flex gap-1">
                 {(['monthly', 'yearly'] as const).map(cycle => (
                   <button key={cycle} type="button" onClick={() => set('billing_cycle', cycle)}
                     className={clsx('flex-1 py-3 font-label text-xs uppercase tracking-wider border transition-all',
@@ -146,7 +198,7 @@ export default function EditSubscriptionPage() {
             </div>
             <div>
               <FieldLabel>Status</FieldLabel>
-              <div className="flex">
+              <div className="flex gap-1">
                 {(['active', 'paused', 'cancelled'] as const).map(s => (
                   <button key={s} type="button" onClick={() => set('status', s)}
                     className={clsx('flex-1 py-3 font-label text-[10px] uppercase tracking-wider border transition-all',
