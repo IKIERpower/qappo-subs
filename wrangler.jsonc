@@ -11,6 +11,9 @@
   "observability": {
     "enabled": true
   },
+  "triggers": {
+    "crons": ["0 8 * * *"]
+  },
   "vars": {
     "NEXT_PUBLIC_SUPABASE_URL": "https://uezndnngrqjixhhbilzp.supabase.co",
     "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlem5kbm5ncnFqaXhoaGJpbHpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxODU1MzEsImV4cCI6MjA4OTc2MTUzMX0.feX169m6axVNV1nM7RF2DJkP1x9dP6zBb7gvzkLtnUQ"
