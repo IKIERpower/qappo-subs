@@ -1,6 +1,11 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "qappo-subs",
+  "main": ".open-next/worker.js",
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
   "compatibility_date": "2025-09-27",
   "compatibility_flags": ["nodejs_compat"],
   "observability": {
@@ -11,4 +16,5 @@
     "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlem5kbm5ncnFqaXhoaGJpbHpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxODU1MzEsImV4cCI6MjA4OTc2MTUzMX0.feX169m6axVNV1nM7RF2DJkP1x9dP6zBb7gvzkLtnUQ"
   }
 }
+
 
