@@ -1,139 +1,59 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/app/lib/supabase'
-import { checkAndSendRenewalAlerts } from '@/app/lib/emailService'
+import { NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
+export const runtime = 'edge'
 
-/**
- * Cron endpoint do wysyłania renewal alerts
- * Usage:
- * GET /api/cron/check-renewals
- * GET /api/cron/check-renewals?userId=xxx
- */
-export async function GET(request: NextRequest) {
-    try {
-        // opcjonalne zabezpieczenie dla Vercel Cron / ręcznych wywołań
-        const authHeader = request.headers.get('authorization')
-        if (process.env.CRON_SECRET) {
-            if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-                return NextResponse.json(
-                    {
-                        success: false,
-                        error: 'Unauthorized',
-                    },
-                    { status: 401 }
-                )
-            }
-        }
+function getSupabaseAdmin() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-        // zamiast new URL(request.url)
-        const userId = request.nextUrl.searchParams.get('userId')
+  if (!supabaseUrl) {
+    throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL')
+  }
 
-        console.log('🔔 Starting renewal alert check...')
+  if (!serviceRoleKey) {
+    throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY')
+  }
 
-        // sprawdzenie jednego użytkownika
-        if (userId) {
-            console.log(`🚀 Checking alerts for user: ${userId}`)
+  return createClient(supabaseUrl, serviceRoleKey)
+}
 
-            const { data: profile, error: profileError } = await supabase
-                .from('profiles')
-                .select('email')
-                .eq('id', userId)
-                .single()
+export async function GET() {
+  try {
+    const supabase = getSupabaseAdmin()
 
-            if (profileError || !profile?.email) {
-                return NextResponse.json(
-                    {
-                        success: false,
-                        error: 'User not found',
-                    },
-                    { status: 404 }
-                )
-            }
+    const today = new Date()
+    const inThreeDays = new Date()
+    inThreeDays.setDate(today.getDate() + 3)
 
-            try {
-                await checkAndSendRenewalAlerts(userId, profile.email)
+    const todayStr = today.toISOString().split('T')[0]
+    const inThreeDaysStr = inThreeDays.toISOString().split('T')[0]
 
-                return NextResponse.json({
-                    success: true,
-                    message: `✅ Alerts checked for ${profile.email}`,
-                    timestamp: new Date().toISOString(),
-                })
-            } catch (error) {
-                console.error(`❌ Failed for user ${userId}:`, error)
+    const { data: subscriptions, error } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('status', 'active')
+      .gte('next_billing_date', todayStr)
+      .lte('next_billing_date', inThreeDaysStr)
 
-                return NextResponse.json(
-                    {
-                        success: false,
-                        error: error instanceof Error ? error.message : 'Unknown error',
-                        timestamp: new Date().toISOString(),
-                    },
-                    { status: 500 }
-                )
-            }
-        }
-
-        // sprawdzenie wszystkich użytkowników
-        console.log('🚀 Checking renewal alerts for all users...')
-
-        const { data: profiles, error: profilesError } = await supabase
-            .from('profiles')
-            .select('id, email')
-            .not('email', 'is', null)
-
-        if (profilesError) {
-            throw profilesError
-        }
-
-        if (!profiles || profiles.length === 0) {
-            return NextResponse.json({
-                success: true,
-                message: 'No users found',
-                checked: 0,
-                timestamp: new Date().toISOString(),
-            })
-        }
-
-        let successCount = 0
-        let errorCount = 0
-        const errors: Record<string, string> = {}
-
-        for (const profile of profiles) {
-            try {
-                console.log(`Checking alerts for ${profile.email}...`)
-                await checkAndSendRenewalAlerts(profile.id, profile.email)
-                successCount++
-            } catch (error) {
-                errorCount++
-                errors[profile.id] =
-                    error instanceof Error ? error.message : 'Unknown error'
-                console.error(`❌ Failed for user ${profile.id}:`, error)
-            }
-        }
-
-        console.log(`✅ Completed: ${successCount} succeeded, ${errorCount} failed`)
-
-        return NextResponse.json({
-            success: true,
-            message: 'Renewal alert check completed',
-            checked: profiles.length,
-            successCount,
-            errorCount,
-            ...(errorCount > 0 ? { errors } : {}),
-            timestamp: new Date().toISOString(),
-        })
-    } catch (error) {
-        console.error('Cron endpoint error:', error)
-
-        return NextResponse.json(
-            {
-                success: false,
-                error: 'Cron job failed',
-                details: error instanceof Error ? error.message : 'Unknown error',
-                timestamp: new Date().toISOString(),
-            },
-            { status: 500 }
-        )
+    if (error) {
+      console.error('Supabase error:', error)
+      return NextResponse.json(
+        { error: 'Failed to fetch subscriptions' },
+        { status: 500 }
+      )
     }
+
+    return NextResponse.json({
+      success: true,
+      count: subscriptions?.length ?? 0,
+      subscriptions: subscriptions ?? [],
+    })
+  } catch (error) {
+    console.error('Cron check-renewals error:', error)
+    return NextResponse.json(
+      { error: 'Failed to check renewals' },
+      { status: 500 }
+    )
+  }
 }
