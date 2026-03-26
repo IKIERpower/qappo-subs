@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
 
           try {
             await resend.emails.send({
-              from: 'SubManager <onboarding@resend.dev>',
+              from: 'SubManager <noreply@subs.qappo.pl>',
               to: userEmail,
               subject,
               html,

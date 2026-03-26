@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
         const resend = new Resend(apiKey)
 
         const data = await resend.emails.send({
-            from: 'SubManager <onboarding@resend.dev>',
+            from: 'SubManager <noreply@subs.qappo.pl>',
             to,
             subject,
             html,
