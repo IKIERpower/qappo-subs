@@ -112,8 +112,8 @@ export async function GET(request: NextRequest) {
         const billingDate = parseISO(sub.next_billing_date)
         const daysUntilRenewal = differenceInDays(billingDate, today)
 
-        // Wyślij alert jeśli dni do odnowienia <= threshold i >= 0
-        if (daysUntilRenewal >= 0 && daysUntilRenewal <= thresholdDays) {
+        // Wyślij alert dokładnie na threshold dni przed LUB w dniu odnowienia (0 dni)
+        if (daysUntilRenewal === thresholdDays || daysUntilRenewal === 0) {
           const html = generateRenewalEmailHtml(sub, daysUntilRenewal)
           const subject = daysUntilRenewal === 0
             ? `⚠️ ${sub.name} odnawia się dzisiaj!`
@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
 
           try {
             await resend.emails.send({
-              from: 'Subly <noreply@subly.app>',
+              from: 'SubManager <onboarding@resend.dev>',
               to: userEmail,
               subject,
               html,
@@ -187,7 +187,7 @@ function generateRenewalEmailHtml(
       <body>
         <div class="container">
           <div class="header">
-            <h1 style="margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;">Subly</h1>
+            <h1 style="margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;">SubManager</h1>
             <p style="margin: 6px 0 0 0; font-size: 13px; opacity: 0.8;">Przypomnienie o płatności</p>
           </div>
           <div class="content">
@@ -222,11 +222,11 @@ function generateRenewalEmailHtml(
             </div>
 
             <p style="font-size: 14px; color: #555; line-height: 1.6;">
-              Upewnij się, że masz wystarczające środki na koncie. Subskrypcjami możesz zarządzać w panelu Subly.
+              Upewnij się, że masz wystarczające środki na koncie. Subskrypcjami możesz zarządzać w panelu SubManager.
             </p>
 
             <div class="footer">
-              <p>Ta wiadomość została wysłana automatycznie przez Subly.<br>Nie odpowiadaj na tego maila.</p>
+              <p>Ta wiadomość została wysłana automatycznie przez SubManager.<br>Nie odpowiadaj na tego maila.</p>
             </div>
           </div>
         </div>
