@@ -188,7 +188,7 @@ function generateRenewalEmailHtml(
         <div class="container">
           <div class="header">
             <h1 style="margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;">SubManager</h1>
-            <p style="margin: 6px 0 0 0; font-size: 13px; opacity: 0.8;">Przypomnienie o płatności</p>
+            <p style="margin: 6px 0 0 0; font-size: 13px; opacity: 0.8;">TESTOWE Przypomnienie o płatności</p>
           </div>
           <div class="content">
             <div class="alert-box">
