@@ -5,9 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "start": "next start",
-    "build": "npx opennextjs-cloudflare build && node scripts/patch-worker.mjs",
-    "preview": "opennextjs-cloudflare build && node scripts/patch-worker.mjs && opennextjs-cloudflare preview",
-    "deploy": "opennextjs-cloudflare build && node scripts/patch-worker.mjs && opennextjs-cloudflare deploy"
+    "build": "npx opennextjs-cloudflare build",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.7",

@@ -1,7 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "qappo-subs",
-  "main": ".open-next/worker.js",
+  "main": "worker.ts",
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
