@@ -1,25 +1,44 @@
-async scheduled(_controller: any, env: Env, _ctx: any) {
-    console.log("CRON_SECRET exists in worker:", !!env.CRON_SECRET);
+// @ts-ignore
+import worker from "./.open-next/worker.js";
 
-    const headers: Record<string, string> = {};
+type Env = {
+    CRON_SECRET?: string;
+};
 
-    if (env.CRON_SECRET) {
-        headers.Authorization = `Bearer ${env.CRON_SECRET}`;
-    }
+export default {
+    async fetch(request: Request, env: Env, ctx: any) {
+        return worker.fetch(request, env, ctx);
+    },
 
-    console.log("Will send auth header:", !!headers.Authorization);
+    async scheduled(_controller: any, env: Env, _ctx: any) {
+        console.log("CRON_SECRET exists in worker:", !!env.CRON_SECRET);
 
-    const res = await fetch("https://qappo-subs.contact-qappo.workers.dev/api/cron/check-renewals", {
-        method: "GET",
-        headers,
-    });
+        const headers: Record<string, string> = {};
 
-    const text = await res.text();
+        if (env.CRON_SECRET) {
+            headers.Authorization = `Bearer ${env.CRON_SECRET}`;
+        }
 
-    console.log("Cron response status:", res.status);
-    console.log("Cron response body:", text);
+        console.log("Will send auth header:", !!headers.Authorization);
 
-    if (!res.ok) {
-        throw new Error(`Cron failed: ${res.status} ${text}`);
-    }
-}
+        const res = await fetch(
+            "https://qappo-subs.contact-qappo.workers.dev/api/cron/check-renewals",
+            {
+                method: "GET",
+                headers,
+            }
+        );
+
+        const text = await res.text();
+
+        console.log("Cron response status:", res.status);
+        console.log("Cron response body:", text);
+
+        if (!res.ok) {
+            throw new Error(`Cron failed: ${res.status} ${text}`);
+        }
+    },
+};
+
+// @ts-ignore
+export * from "./.open-next/worker.js";
