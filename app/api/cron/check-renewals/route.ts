@@ -11,160 +11,209 @@ import { differenceInDays, parseISO } from 'date-fns'
  * Opcjonalnie zabezpieczone nagłówkiem: Authorization: Bearer <CRON_SECRET>
  */
 export async function GET(request: NextRequest) {
-  try {
-    // Opcjonalne zabezpieczenie crona
-    const cronSecret = process.env.CRON_SECRET
-    if (cronSecret) {
-      const authHeader = request.headers.get('authorization')
-      if (authHeader !== `Bearer ${cronSecret}`) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-      }
-    }
-
-    const resendApiKey = process.env.RESEND_API_KEY
-    if (!resendApiKey) {
-      console.error('Missing RESEND_API_KEY')
-      return NextResponse.json(
-        { error: 'Email service not configured' },
-        { status: 500 }
-      )
-    }
-
-    const supabase = getSupabaseAdmin()
-    const resend = new Resend(resendApiKey)
-    const today = new Date()
-
-    // 1. Pobierz wszystkie włączone alerty renewal
-    const { data: alerts, error: alertsError } = await supabase
-      .from('alerts')
-      .select('user_id, threshold_value, threshold_unit')
-      .eq('type', 'renewal')
-      .eq('enabled', true)
-
-    if (alertsError) {
-      console.error('Failed to fetch alerts:', alertsError)
-      return NextResponse.json(
-        { error: 'Failed to fetch alerts' },
-        { status: 500 }
-      )
-    }
-
-    if (!alerts || alerts.length === 0) {
-      return NextResponse.json({ success: true, message: 'No active renewal alerts', sent: 0 })
-    }
-
-    // 2. Pobierz unikalne user_id z alertów
-    const userIds = [...new Set(alerts.map(a => a.user_id))]
-
-    // 3. Pobierz emaile użytkowników z tabeli profiles
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, email')
-      .in('id', userIds)
-
-    const emailMap = new Map<string, string>()
-    for (const p of profiles ?? []) {
-      if (p.email) emailMap.set(p.id, p.email)
-    }
-
-    // 4. Pobierz aktywne subskrypcje z datą odnowienia
-    const { data: subscriptions } = await supabase
-      .from('subscriptions')
-      .select('*')
-      .eq('status', 'active')
-      .in('user_id', userIds)
-      .not('next_billing_date', 'is', null)
-
-    if (!subscriptions || subscriptions.length === 0) {
-      return NextResponse.json({ success: true, message: 'No active subscriptions to check', sent: 0 })
-    }
-
-    // 5. Grupuj subskrypcje po user_id
-    const subsByUser = new Map<string, typeof subscriptions>()
-    for (const sub of subscriptions) {
-      const list = subsByUser.get(sub.user_id) ?? []
-      list.push(sub)
-      subsByUser.set(sub.user_id, list)
-    }
-
-    // 6. Grupuj alerty po user_id (bierzemy najwcześniejszy threshold per user)
-    const alertByUser = new Map<string, number>()
-    for (const alert of alerts) {
-      const existing = alertByUser.get(alert.user_id)
-      if (existing === undefined || alert.threshold_value > existing) {
-        alertByUser.set(alert.user_id, alert.threshold_value)
-      }
-    }
-
-    // 7. Sprawdź dopasowania i wyślij emaile
-    let sentCount = 0
-    const errors: string[] = []
-
-    for (const [userId, thresholdDays] of alertByUser) {
-      const userEmail = emailMap.get(userId)
-      if (!userEmail) continue
-
-      const userSubs = subsByUser.get(userId) ?? []
-
-      for (const sub of userSubs) {
-        if (!sub.next_billing_date) continue
-
-        const billingDate = parseISO(sub.next_billing_date)
-        const daysUntilRenewal = differenceInDays(billingDate, today)
-
-        // Wyślij alert dokładnie na threshold dni przed LUB w dniu odnowienia (0 dni)
-        if (daysUntilRenewal === thresholdDays || daysUntilRenewal === 0) {
-          const html = generateRenewalEmailHtml(sub, daysUntilRenewal)
-          const subject = daysUntilRenewal === 0
-            ? `⚠️ ${sub.name} odnawia się dzisiaj!`
-            : `📅 ${sub.name} odnawia się za ${daysUntilRenewal} ${daysUntilRenewal === 1 ? 'dzień' : 'dni'}`
-
-          try {
-            await resend.emails.send({
-              from: 'SubManager <noreply@subs.qappo.pl>',
-              to: userEmail,
-              subject,
-              html,
-            })
-            sentCount++
-            console.log(`✅ Email sent to ${userEmail} for "${sub.name}" (${daysUntilRenewal}d)`)
-          } catch (emailErr) {
-            const msg = `Failed to send to ${userEmail} for "${sub.name}": ${emailErr}`
-            console.error(msg)
-            errors.push(msg)
-          }
+    try {
+        const cronSecret = process.env.CRON_SECRET
+        if (cronSecret) {
+            const authHeader = request.headers.get('authorization')
+            if (authHeader !== `Bearer ${cronSecret}`) {
+                return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+            }
         }
-      }
-    }
 
-    return NextResponse.json({
-      success: true,
-      sent: sentCount,
-      errors: errors.length > 0 ? errors : undefined,
-      checkedUsers: userIds.length,
-      checkedSubscriptions: subscriptions.length,
-    })
-  } catch (error) {
-    console.error('Cron check-renewals error:', error)
-    return NextResponse.json(
-      { error: 'Failed to check renewals' },
-      { status: 500 }
-    )
-  }
+        const resendApiKey = process.env.RESEND_API_KEY
+        if (!resendApiKey) {
+            console.error('Missing RESEND_API_KEY')
+            return NextResponse.json(
+                { error: 'Email service not configured' },
+                { status: 500 }
+            )
+        }
+
+        const supabase = getSupabaseAdmin()
+        const resend = new Resend(resendApiKey)
+
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+
+        const { data: alerts, error: alertsError } = await supabase
+            .from('alerts')
+            .select('user_id, threshold_value, threshold_unit')
+            .eq('type', 'renewal')
+            .eq('enabled', true)
+
+        if (alertsError) {
+            console.error('Failed to fetch alerts:', alertsError)
+            return NextResponse.json(
+                { error: 'Failed to fetch alerts' },
+                { status: 500 }
+            )
+        }
+
+        if (!alerts || alerts.length === 0) {
+            return NextResponse.json({
+                success: true,
+                message: 'No active renewal alerts',
+                sent: 0,
+            })
+        }
+
+        const userIds = [...new Set(alerts.map((a) => a.user_id))]
+
+        const { data: profiles, error: profilesError } = await supabase
+            .from('profiles')
+            .select('id, email')
+            .in('id', userIds)
+
+        if (profilesError) {
+            console.error('Failed to fetch profiles:', profilesError)
+            return NextResponse.json(
+                { error: 'Failed to fetch profiles' },
+                { status: 500 }
+            )
+        }
+
+        const emailMap = new Map<string, string>()
+        for (const p of profiles ?? []) {
+            if (p.email) emailMap.set(p.id, p.email)
+        }
+
+        const { data: subscriptions, error: subscriptionsError } = await supabase
+            .from('subscriptions')
+            .select('*')
+            .eq('status', 'active')
+            .in('user_id', userIds)
+            .not('next_billing_date', 'is', null)
+
+        if (subscriptionsError) {
+            console.error('Failed to fetch subscriptions:', subscriptionsError)
+            return NextResponse.json(
+                { error: 'Failed to fetch subscriptions' },
+                { status: 500 }
+            )
+        }
+
+        if (!subscriptions || subscriptions.length === 0) {
+            return NextResponse.json({
+                success: true,
+                message: 'No active subscriptions to check',
+                sent: 0,
+            })
+        }
+
+        const subsByUser = new Map<string, typeof subscriptions>()
+        for (const sub of subscriptions) {
+            const list = subsByUser.get(sub.user_id) ?? []
+            list.push(sub)
+            subsByUser.set(sub.user_id, list)
+        }
+
+        const alertsByUser = new Map<string, number[]>()
+        for (const alert of alerts) {
+            const current = alertsByUser.get(alert.user_id) ?? []
+            current.push(Number(alert.threshold_value))
+            alertsByUser.set(alert.user_id, current)
+        }
+
+        let sentCount = 0
+        const errors: string[] = []
+
+        for (const [userId, thresholds] of alertsByUser) {
+            const userEmail = emailMap.get(userId)
+
+            if (!userEmail) {
+                console.log('Skipped user - no email', { userId })
+                continue
+            }
+
+            const userSubs = subsByUser.get(userId) ?? []
+
+            console.log('Checking user', {
+                userId,
+                userEmail,
+                thresholds,
+                subscriptionsCount: userSubs.length,
+            })
+
+            for (const sub of userSubs) {
+                if (!sub.next_billing_date) continue
+
+                const billingDate = parseISO(sub.next_billing_date)
+                billingDate.setHours(0, 0, 0, 0)
+
+                const daysUntilRenewal = differenceInDays(billingDate, today)
+                const matchesThreshold =
+                    daysUntilRenewal === 0 || thresholds.includes(daysUntilRenewal)
+
+                console.log('Checking subscription', {
+                    userId,
+                    userEmail,
+                    subName: sub.name,
+                    nextBillingDate: sub.next_billing_date,
+                    daysUntilRenewal,
+                    thresholds,
+                    matchesThreshold,
+                })
+
+                if (!matchesThreshold) continue
+
+                const html = generateRenewalEmailHtml(sub, daysUntilRenewal)
+                const subject =
+                    daysUntilRenewal === 0
+                        ? `⚠️ ${sub.name} odnawia się dzisiaj!`
+                        : `📅 ${sub.name} odnawia się za ${daysUntilRenewal} ${daysUntilRenewal === 1 ? 'dzień' : 'dni'}`
+
+                try {
+                    await resend.emails.send({
+                        from: 'SubManager <noreply@subs.qappo.pl>',
+                        to: userEmail,
+                        subject,
+                        html,
+                    })
+                    sentCount++
+                    console.log(`✅ Email sent to ${userEmail} for "${sub.name}" (${daysUntilRenewal}d)`)
+                } catch (emailErr) {
+                    const msg = `Failed to send to ${userEmail} for "${sub.name}": ${emailErr}`
+                    console.error(msg)
+                    errors.push(msg)
+                }
+            }
+        }
+
+        return NextResponse.json({
+            success: true,
+            sent: sentCount,
+            errors: errors.length > 0 ? errors : undefined,
+            checkedUsers: userIds.length,
+            checkedSubscriptions: subscriptions.length,
+        })
+    } catch (error) {
+        console.error('Cron check-renewals error:', error)
+        return NextResponse.json(
+            { error: 'Failed to check renewals' },
+            { status: 500 }
+        )
+    }
 }
 
 /**
  * Generuje HTML emaila o zbliżającej się płatności
  */
 function generateRenewalEmailHtml(
-  sub: { name: string; category: string; cost: number; currency: string; billing_cycle: string; next_billing_date: string },
-  daysLeft: number
+    sub: {
+        name: string
+        category: string
+        cost: number
+        currency: string
+        billing_cycle: string
+        next_billing_date: string
+    },
+    daysLeft: number
 ): string {
-  const formattedCost = sub.cost.toFixed(2)
-  const isToday = daysLeft === 0
-  const timing = isToday ? 'dzisiaj' : `za ${daysLeft} ${daysLeft === 1 ? 'dzień' : 'dni'}`
+    const formattedCost = sub.cost.toFixed(2)
+    const isToday = daysLeft === 0
+    const timing = isToday ? 'dzisiaj' : `za ${daysLeft} ${daysLeft === 1 ? 'dzień' : 'dni'}`
 
-  return `
+    return `
     <!DOCTYPE html>
     <html>
       <head>
@@ -188,7 +237,7 @@ function generateRenewalEmailHtml(
         <div class="container">
           <div class="header">
             <h1 style="margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;">SubManager</h1>
-            <p style="margin: 6px 0 0 0; font-size: 13px; opacity: 0.8;">TESTOWE Przypomnienie o płatności</p>
+            <p style="margin: 6px 0 0 0; font-size: 13px; opacity: 0.8;">Przypomnienie o płatności</p>
           </div>
           <div class="content">
             <div class="alert-box">
@@ -213,11 +262,11 @@ function generateRenewalEmailHtml(
               <div class="detail-row">
                 <span class="detail-label">Data odnowienia</span>
                 <span class="detail-value">${new Date(sub.next_billing_date).toLocaleDateString('pl-PL', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}</span>
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    })}</span>
               </div>
             </div>
 
@@ -234,4 +283,3 @@ function generateRenewalEmailHtml(
     </html>
   `
 }
-
