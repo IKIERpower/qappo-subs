@@ -12,7 +12,7 @@
     "enabled": true
   },
   "triggers": {
-    "crons": ["*/5 * * * *"]
+    "crons": ["0 8 * * *"]
   },
   "vars": {
     "NEXT_PUBLIC_SUPABASE_URL": "https://uezndnngrqjixhhbilzp.supabase.co",
