@@ -10,29 +10,31 @@ export default {
         return worker.fetch(request, env, ctx);
     },
 
-   async scheduled(_controller: any, env: Env, _ctx: any) {
-  console.log("CRON_SECRET exists in worker:", !!env.CRON_SECRET);
+    async scheduled(_controller: any, env: Env, _ctx: any) {
+        console.log("CRON_SECRET exists in worker:", !!env.CRON_SECRET);
 
-  const headers = env.CRON_SECRET
-    ? { Authorization: `Bearer ${env.CRON_SECRET}` }
-    : {};
+        const headers: Record<string, string> = {};
 
-  console.log("Will send auth header:", "Authorization" in headers);
+        if (env.CRON_SECRET) {
+            headers.Authorization = `Bearer ${env.CRON_SECRET}`;
+        }
 
-  const res = await fetch("https://subs.qappo.pl/api/cron/check-renewals", {
-    method: "GET",
-    headers,
-  });
+        console.log("Will send auth header:", !!headers.Authorization);
 
-  const text = await res.text();
+        const res = await fetch("https://subs.qappo.pl/api/cron/check-renewals", {
+            method: "GET",
+            headers,
+        });
 
-  console.log("Cron response status:", res.status);
-  console.log("Cron response body:", text);
+        const text = await res.text();
 
-  if (!res.ok) {
-    throw new Error(`Cron failed: ${res.status} ${text}`);
-  }
-}
+        console.log("Cron response status:", res.status);
+        console.log("Cron response body:", text);
+
+        if (!res.ok) {
+            throw new Error(`Cron failed: ${res.status} ${text}`);
+        }
+    },
 };
 
 // @ts-ignore
