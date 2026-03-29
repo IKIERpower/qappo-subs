@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import Link from 'next/link'
+import Footer from '@/app/components/Footer'
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
@@ -55,6 +56,7 @@ export default function RegisterPage() {
 
   if (success) {
     return (
+      <>
       <div className="min-h-screen bg-surface flex items-center justify-center p-8">
         <div className="w-full max-w-[400px] text-center animate-fade-up">
           <div className="w-12 h-12 bg-secondary flex items-center justify-center mx-auto mb-6">
@@ -73,10 +75,13 @@ export default function RegisterPage() {
           </Link>
         </div>
       </div>
+      <Footer />
+      </>
     )
   }
 
   return (
+    <>
     <div className="min-h-screen bg-surface flex">
       {/* Left panel */}
       <div className="hidden lg:flex w-[480px] min-w-[480px] bg-primary flex-col justify-between p-12">
@@ -205,5 +210,7 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+    <Footer />
+    </>
   )
 }

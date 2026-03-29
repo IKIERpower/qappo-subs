@@ -5,6 +5,7 @@ import { supabase } from '@/app/lib/supabase'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import clsx from 'clsx'
+import Footer from '@/app/components/Footer'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -39,12 +40,13 @@ export default function LoginPage() {
   }
 
   return (
+    <>
     <div className="min-h-screen bg-surface flex">
       {/* Left panel — branding */}
       <div className="hidden lg:flex w-[480px] min-w-[480px] bg-primary flex-col justify-between p-12">
         <div>
-          <div className="font-headline font-bold text-xl tracking-tighter text-white">Subly</div>
-          <div className="font-label text-[10px] uppercase tracking-widest text-white/40 mt-0.5">Sub Manager</div>
+          <div className="font-headline font-bold text-xl tracking-tighter text-white">SubManager</div>
+          <div className="font-label text-[10px] uppercase tracking-widest text-white/40 mt-0.5">Sub Manager by Qappo</div>
         </div>
 
         <div className="space-y-8">
@@ -78,104 +80,110 @@ export default function LoginPage() {
         </div>
 
         <div className="font-label text-[10px] text-white/20 uppercase tracking-widest">
-          © {new Date().getFullYear()} Subly
+          © {new Date().getFullYear()} QAPPO
         </div>
       </div>
 
       {/* Right panel — form */}
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-[400px] animate-fade-up">
+      <div className="flex-1 flex flex-col items-center justify-center p-8">
+        <div className="w-full max-w-[400px] animate-fade-up flex-1 flex items-center">
 
           {/* Mobile logo */}
-          <div className="mb-8">
-            <h1 className="font-headline font-bold text-2xl tracking-tighter text-on-surface">Sign in</h1>
-            <p className="font-label text-sm text-on-surface-variant mt-1">Access your financial ledger.</p>
-          </div>
-
-          <div className="space-y-4">
-            {/* Email */}
-            <div>
-              <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant block mb-2">
-                Email Address
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                onKeyDown={handleKey}
-                placeholder="you@example.com"
-                autoComplete="email"
-                autoFocus
-                className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant/30 text-on-surface font-label text-sm placeholder:text-on-surface-variant focus:outline-none focus:border-primary transition-colors"
-              />
+          <div className="w-full">
+            <div className="mb-8">
+              <h1 className="font-headline font-bold text-2xl tracking-tighter text-on-surface">Sign in</h1>
+              <p className="font-label text-sm text-on-surface-variant mt-1">Access your financial ledger.</p>
             </div>
 
-            {/* Password */}
-            <div>
-              {/*<div className="flex items-center justify-between mb-2">*/}
-              {/*  <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">*/}
-              {/*    Password*/}
-              {/*  </label>*/}
-              {/*  <Link href="/auth/reset" className="font-label text-[10px] text-on-surface-variant hover:text-on-surface transition-colors uppercase tracking-wider">*/}
-              {/*    Forgot?*/}
-              {/*  </Link>*/}
-              {/*</div>*/}
+            <div className="space-y-4">
+              {/* Email */}
+              <div>
                 <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant block mb-2">
-                    PASSWORD
+                  Email Address
                 </label>
-              <div className="relative">
                 <input
-                  type={showPass ? 'text' : 'password'}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
                   onKeyDown={handleKey}
-                  placeholder="password"
-                  autoComplete="current-password"
-                  className="w-full px-4 py-3 pr-12 bg-surface-container-low border border-outline-variant/30 text-on-surface font-label text-sm placeholder:text-on-surface-variant focus:outline-none focus:border-primary transition-colors"
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                  autoFocus
+                  className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant/30 text-on-surface font-label text-sm placeholder:text-on-surface-variant focus:outline-none focus:border-primary transition-colors"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPass(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-[18px] text-on-surface-variant hover:text-on-surface transition-colors"
-                >
-                  {showPass ? 'visibility_off' : 'visibility'}
-                </button>
               </div>
+
+              {/* Password */}
+              <div>
+                {/*<div className="flex items-center justify-between mb-2">*/}
+                {/*  <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">*/}
+                {/*    Password*/}
+                {/*  </label>*/}
+                {/*  <Link href="/auth/reset" className="font-label text-[10px] text-on-surface-variant hover:text-on-surface transition-colors uppercase tracking-wider">*/}
+                {/*    Forgot?*/}
+                {/*  </Link>*/}
+                {/*</div>*/}
+                  <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant block mb-2">
+                      PASSWORD
+                  </label>
+                <div className="relative">
+                  <input
+                    type={showPass ? 'text' : 'password'}
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    onKeyDown={handleKey}
+                    placeholder="password"
+                    autoComplete="current-password"
+                    className="w-full px-4 py-3 pr-12 bg-surface-container-low border border-outline-variant/30 text-on-surface font-label text-sm placeholder:text-on-surface-variant focus:outline-none focus:border-primary transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPass(v => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-[18px] text-on-surface-variant hover:text-on-surface transition-colors"
+                  >
+                    {showPass ? 'visibility_off' : 'visibility'}
+                  </button>
+                </div>
+              </div>
+
+              {/* Error */}
+              {error && (
+                <div className="flex items-center gap-2 py-3 px-4 bg-tertiary/5 border border-tertiary/20 animate-fade-in">
+                  <span className="material-symbols-outlined text-[16px] text-tertiary flex-shrink-0">error</span>
+                  <span className="font-label text-xs text-tertiary">{error}</span>
+                </div>
+              )}
+
+              {/* Submit */}
+              <button
+                onClick={handleLogin}
+                disabled={loading}
+                className="w-full bg-primary text-white font-label font-bold text-xs uppercase tracking-widest py-3.5 hover:bg-on-surface transition-colors disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
+              >
+                {loading ? (
+                  <>
+                    <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  'Sign In'
+                )}
+              </button>
             </div>
 
-            {/* Error */}
-            {error && (
-              <div className="flex items-center gap-2 py-3 px-4 bg-tertiary/5 border border-tertiary/20 animate-fade-in">
-                <span className="material-symbols-outlined text-[16px] text-tertiary flex-shrink-0">error</span>
-                <span className="font-label text-xs text-tertiary">{error}</span>
-              </div>
-            )}
-
-            {/* Submit */}
-            <button
-              onClick={handleLogin}
-              disabled={loading}
-              className="w-full bg-primary text-white font-label font-bold text-xs uppercase tracking-widest py-3.5 hover:bg-on-surface transition-colors disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
-            >
-              {loading ? (
-                <>
-                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                'Sign In'
-              )}
-            </button>
-          </div>
-
-          <div className="mt-8 pt-6 border-t border-outline-variant/20 text-center">
-            {/*<span className="font-label text-xs text-on-surface-variant">No account? </span>*/}
-            {/*<Link href="/auth/register" className="font-label text-xs text-on-surface font-semibold hover:underline">*/}
-            {/*  Create one →*/}
-            {/*</Link>*/}
+            <div className="mt-8 pt-6 border-t border-outline-variant/20 text-center">
+              {/*<span className="font-label text-xs text-on-surface-variant">No account? </span>*/}
+              {/*<Link href="/auth/register" className="font-label text-xs text-on-surface font-semibold hover:underline">*/}
+              {/*  Create one →*/}
+              {/*</Link>*/}
+            </div>
           </div>
         </div>
+
+        {/* Mobile footer — hidden on desktop */}
       </div>
     </div>
+    <Footer />
+    </>
   )
 }

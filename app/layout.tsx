@@ -5,7 +5,7 @@ import { ThemeProvider } from '@/app/lib/ThemeContext'
 import { LocaleProvider } from '@/app/lib/LocaleContext'
 
 export const metadata: Metadata = {
-  title: 'Subly',
+  title: 'SubManager',
   description: 'Subscription Manager',
 }
 

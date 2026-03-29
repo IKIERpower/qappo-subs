@@ -40,8 +40,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null)
       setLoading(false)
 
-      if (!session && !pathname.startsWith('/auth')) {
-        router.replace('/auth/login')
+      if (!session && !pathname.startsWith('/auth') && pathname !== '/') {
+        router.replace('/')
       }
     })
 
@@ -49,14 +49,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    if (!loading && !user && !pathname.startsWith('/auth')) {
-      router.replace('/auth/login')
+    if (!loading && !user && !pathname.startsWith('/auth') && pathname !== '/' && !pathname.startsWith('/legal')) {
+      router.replace('/')
     }
   }, [loading, user, pathname])
 
   async function signOut() {
     await supabase.auth.signOut()
-    router.replace('/auth/login')
+    router.replace('/')
   }
 
   return (

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { supabase } from '@/app/lib/supabase'
 import Link from 'next/link'
+import Footer from '@/app/components/Footer'
 
 export default function ResetPage() {
   const [email, setEmail] = useState('')
@@ -25,6 +26,7 @@ export default function ResetPage() {
   }
 
   if (sent) return (
+    <>
     <div className="min-h-screen bg-surface flex items-center justify-center p-8">
       <div className="w-full max-w-[400px] text-center animate-fade-up">
         <div className="w-12 h-12 bg-primary flex items-center justify-center mx-auto mb-6">
@@ -39,9 +41,12 @@ export default function ResetPage() {
         </Link>
       </div>
     </div>
+    <Footer />
+    </>
   )
 
   return (
+    <>
     <div className="min-h-screen bg-surface flex items-center justify-center p-8">
       <div className="w-full max-w-[400px] animate-fade-up">
         <Link href="/auth/login" className="inline-flex items-center gap-1 font-label text-xs uppercase tracking-widest text-on-surface-variant hover:text-on-surface transition-colors mb-10">
@@ -85,5 +90,7 @@ export default function ResetPage() {
         </div>
       </div>
     </div>
+    <Footer />
+    </>
   )
 }

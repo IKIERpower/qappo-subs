@@ -60,13 +60,13 @@ export default function DashboardPage() {
   const monthlyBurn = activeSubs.reduce((a, s) => a + monthlyEquivalent(s), 0)
   const annualProjection = monthlyBurn * 12
 
-  // 14-day renewals
+  // 7-day renewals
   const today = new Date()
-  const in14 = addDays(today, 14)
+  const in7 = addDays(today, 7)
   const upcoming = subs
     .filter(s => s.status === 'active' && s.next_billing_date)
     .map(s => ({ ...s, d: parseISO(s.next_billing_date!) }))
-    .filter(s => isWithinInterval(s.d, { start: today, end: in14 }))
+    .filter(s => isWithinInterval(s.d, { start: today, end: in7 }))
     .sort((a, b) => a.d.getTime() - b.d.getTime())
 
   // Category breakdown
@@ -247,30 +247,30 @@ export default function DashboardPage() {
                     key={sub.id}
                     href={`/subscriptions/${sub.id}/edit`}
                     className={clsx(
-                      'flex items-center justify-between px-6 py-4 transition-all duration-150',
+                      'flex items-center justify-between px-4 md:px-6 py-4 transition-all duration-150',
                       'hover:bg-surface-container group cursor-pointer',
                       `animate-fade-up`
                     )}
                     style={{ animationDelay: `${i * 50}ms` }}
                   >
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
                       <div className={clsx(
                         'w-1 h-10 flex-shrink-0 transition-all duration-150',
                         urgent ? 'bg-tertiary' : 'bg-outline-variant'
                       )} />
-                      <div>
-                        <div className="font-headline font-semibold text-sm text-on-surface group-hover:text-primary transition-colors">{sub.name}</div>
+                      <div className="min-w-0">
+                        <div className="font-headline font-semibold text-sm text-on-surface group-hover:text-primary transition-colors truncate">{sub.name}</div>
                         <div className="font-label text-xs text-on-surface-variant uppercase tracking-wider">{sub.category}</div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-8">
-                      <div className="text-right">
+                    <div className="flex items-center gap-4 md:gap-8 flex-shrink-0">
+                      <div className="text-center min-w-[60px]">
                         <div className={clsx('font-label text-xs font-bold uppercase tracking-wider', urgent ? 'text-tertiary' : 'text-on-surface-variant')}>
                           {days === 0 ? t.today : `T-${days} ${days !== 1 ? t.days : t.day}`}
                         </div>
                         <div className="font-label text-[10px] text-on-surface-variant">{format(sub.d, 'dd MMM yyyy')}</div>
                       </div>
-                      <div className="text-right w-28">
+                      <div className="text-right min-w-[80px] md:min-w-[100px]">
                         <div className="font-label text-sm font-bold tabular-nums text-on-surface">{sub.cost.toFixed(2)} PLN</div>
                         <div className="font-label text-[10px] text-on-surface-variant uppercase">{sub.billing_cycle}</div>
                       </div>

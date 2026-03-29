@@ -43,6 +43,7 @@ html.dark {
 html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  height: 100%;
 }
 
 body {
@@ -50,22 +51,37 @@ body {
   background: var(--bg-surface);
   color: var(--text-on-surface);
   transition: background-color 0.3s, color 0.3s;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
   background: var(--bg-surface-container-low);
 }
 ::-webkit-scrollbar-thumb {
   background: var(--text-on-surface-variant);
-  border-radius: 0;
+  border-radius: 4px;
+  border: 2px solid var(--bg-surface-container-low);
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-on-surface);
+  border-color: var(--bg-surface-container);
+}
+
+/* Firefox scrollbar */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--text-on-surface-variant) var(--bg-surface-container-low);
+}
+
+html.dark {
+  scrollbar-color: #8a8a8a #333333;
 }
 
 /* Tabular numerals */

@@ -9,6 +9,9 @@ import { useTheme } from '@/app/lib/ThemeContext'
 import { useLocale } from '@/app/lib/LocaleContext'
 import { useTranslation } from '@/app/lib/translations'
 
+import Footer from '@/app/components/Footer'
+import FooterCompact from '@/app/components/FooterCompact'
+
 const navItems = [
   { href: '/dashboard',     icon: 'dashboard',     labelKey: 'dashboard' },
   { href: '/subscriptions', icon: 'subscriptions', labelKey: 'subscriptionsNav' },
@@ -57,7 +60,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <aside className="hidden md:flex w-[240px] min-w-[240px] h-screen bg-surface-container-low flex-col">
         {/* Logo */}
         <div className="px-6 py-6 border-b border-outline-variant/20">
-          <div className="font-headline font-bold text-base tracking-tighter text-on-surface">Subly</div>
+          <div className="font-headline font-bold text-base tracking-tighter text-on-surface">SubManager</div>
           <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mt-0.5">Subscription Tracker</div>
         </div>
 
@@ -230,8 +233,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-auto pb-20 md:pb-0" onClick={() => { setUserMenuOpen(false); setMobileUserMenuOpen(false) }}>
+        <main className="flex-1 overflow-auto" onClick={() => { setUserMenuOpen(false); setMobileUserMenuOpen(false) }}>
           {children}
+          {pathname === '/settings' ? <Footer /> : <FooterCompact />}
+          {/* Spacer for mobile bottom nav */}
+          <div className="h-14 md:hidden" />
         </main>
       </div>
 
@@ -247,10 +253,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               href={item.href}
               className={clsx(
                 'flex-1 flex flex-col items-center justify-center py-2.5 gap-1 relative transition-colors',
-                isActive ? 'text-primary' : 'text-on-surface-variant'
+                isActive ? 'text-on-surface-variant' : 'text-on-surface'
               )}
             >
-              {isActive && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary" />}
+              {isActive && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-on-surface-variant" />}
               <span className="material-symbols-outlined text-[22px]">{item.icon}</span>
               <span className="font-label text-[9px] uppercase tracking-wider">{t[item.labelKey as keyof typeof t]}</span>
             </Link>

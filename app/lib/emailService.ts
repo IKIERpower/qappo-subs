@@ -86,7 +86,7 @@ export function generateRenewalEmailHtml(
       <body>
         <div class="container">
           <div class="header">
-            <h1 style="margin: 0; font-size: 24px;">Subly</h1>
+            <h1 style="margin: 0; font-size: 24px;">SubManager</h1>
             <p style="margin: 8px 0 0 0; font-size: 14px; opacity: 0.9;">Subscription Renewal Alert</p>
           </div>
           
@@ -126,10 +126,10 @@ export function generateRenewalEmailHtml(
               </div>
             </div>
             
-            <p>Make sure you have sufficient funds available. You can manage your subscriptions anytime in your Subly dashboard.</p>
+            <p>Make sure you have sufficient funds available. You can manage your subscriptions anytime in your SubManager dashboard.</p>
             
             <div class="footer">
-              <p>This is an automated message from Subly. Please do not reply to this email.</p>
+              <p>This is an automated message from SubManager. Please do not reply to this email.</p>
             </div>
           </div>
         </div>
@@ -177,7 +177,7 @@ export async function checkAndSendRenewalAlerts(userId: string, userEmail: strin
 
         await sendEmail({
           to: userEmail,
-          subject: `[Subly] Renewal Alert: ${sub.name} ${daysLeft === 0 ? 'today' : `in ${daysLeft} days`}`,
+          subject: `[SubManager] Renewal Alert: ${sub.name} ${daysLeft === 0 ? 'today' : `in ${daysLeft} days`}`,
           html,
         })
 
