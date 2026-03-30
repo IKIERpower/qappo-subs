@@ -86,7 +86,7 @@ export default function LandingPage() {
             </Link>
             <Link
               href="/auth/register"
-              className="h-9 px-4 flex items-center font-label text-xs font-semibold tracking-wide uppercase text-white bg-primary hover:bg-primary/85 dark:bg-on-surface dark:text-surface dark:hover:bg-on-surface/85 transition-colors"
+              className="h-9 px-4 flex items-center font-label text-xs font-semibold tracking-wide uppercase text-on-primary bg-primary hover:bg-primary/85 transition-colors"
             >
               {t.landingGetStarted}
             </Link>
@@ -117,7 +117,7 @@ export default function LandingPage() {
             <div className="flex flex-col sm:flex-row gap-3 animate-fade-up opacity-0" style={{ animationDelay: '240ms' }}>
               <Link
                 href="/auth/register"
-                className="h-12 px-8 flex items-center justify-center font-label text-sm font-semibold tracking-wide uppercase text-white bg-primary hover:bg-primary/85 dark:bg-on-surface dark:text-surface dark:hover:bg-on-surface/85 transition-colors"
+                className="h-12 px-8 flex items-center justify-center font-label text-sm font-semibold tracking-wide uppercase text-on-primary bg-primary hover:bg-primary/85 transition-colors"
               >
                 {t.landingCTA}
               </Link>
@@ -212,7 +212,7 @@ export default function LandingPage() {
           </p>
           <Link
             href="/auth/register"
-            className="inline-flex h-12 px-10 items-center justify-center font-label text-sm font-semibold tracking-wide uppercase text-white bg-primary hover:bg-primary/85 dark:bg-on-surface dark:text-surface dark:hover:bg-on-surface/85 transition-colors"
+            className="inline-flex h-12 px-10 items-center justify-center font-label text-sm font-semibold tracking-wide uppercase text-on-primary bg-primary hover:bg-primary/85 transition-colors"
           >
             {t.landingCTA}
           </Link>

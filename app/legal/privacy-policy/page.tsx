@@ -78,8 +78,8 @@ export default function PrivacyPolicyPage() {
             <h2 className="text-xl font-bold text-on-surface mb-3">6. Contact Us</h2>
             <p>
               If you have any questions about this Privacy Policy, please contact us at{' '}
-              <Link href="mailto:hello@qappo.pl" className="text-primary hover:text-on-surface">
-                hello@qappo.pl
+              <Link href="mailto:contact.qappo@gmail.com" className="text-primary hover:text-on-surface">
+                contact.qappo@gmail.pl
               </Link>
             </p>
           </section>

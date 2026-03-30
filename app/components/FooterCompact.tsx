@@ -32,6 +32,12 @@ export default function FooterCompact() {
             {t.termsOfService}
           </Link>
           <Link
+            href="/legal/cookie-policy"
+            className="font-label text-[11px] text-on-surface-variant/70 hover:text-on-surface-variant transition-colors"
+          >
+            {t.cookiePolicy}
+          </Link>
+          <Link
             href="mailto:contact.qappo@gmail.com"
             className="font-label text-[11px] text-on-surface-variant/70 hover:text-on-surface-variant transition-colors"
           >

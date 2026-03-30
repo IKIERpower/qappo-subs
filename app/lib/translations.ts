@@ -96,6 +96,23 @@ export const translations = {
     sublyProduct: 'SubManager is a product',
     contact: 'Contact',
 
+    // Contact form
+    contactFormTitle: 'Contact Support',
+    contactFormDesc: 'Send us a message and we\'ll get back to you as soon as possible.',
+    contactFormName: 'Name',
+    contactFormOptional: 'optional',
+    contactFormNamePlaceholder: 'John Doe',
+    contactFormSubject: 'Subject',
+    contactFormSubjectPlaceholder: 'How can we help?',
+    contactFormMessage: 'Message',
+    contactFormMessagePlaceholder: 'Describe your issue or question...',
+    contactFormSend: 'Send Message',
+    contactFormSending: 'Sending...',
+    contactFormSent: 'Message Sent!',
+    contactFormSentDesc: 'We\'ll get back to you at the provided email address.',
+    contactFormClose: 'Close',
+    contactFormError: 'Failed to send message. Please try again.',
+
     // Landing page
     landingLogin: 'Log In',
     landingGetStarted: 'Get Started',
@@ -210,6 +227,23 @@ export const translations = {
     allRightsReserved: 'Wszystkie prawa zastrzeżone',
     sublyProduct: 'SubManager to produkt',
     contact: 'Kontakt',
+
+    // Formularz kontaktowy
+    contactFormTitle: 'Skontaktuj się z nami',
+    contactFormDesc: 'Wyślij nam wiadomość, a odpowiemy tak szybko, jak to możliwe.',
+    contactFormName: 'Imię i nazwisko',
+    contactFormOptional: 'opcjonalne',
+    contactFormNamePlaceholder: 'Jan Kowalski',
+    contactFormSubject: 'Temat',
+    contactFormSubjectPlaceholder: 'W czym możemy pomóc?',
+    contactFormMessage: 'Wiadomość',
+    contactFormMessagePlaceholder: 'Opisz swój problem lub pytanie...',
+    contactFormSend: 'Wyślij wiadomość',
+    contactFormSending: 'Wysyłanie...',
+    contactFormSent: 'Wiadomość wysłana!',
+    contactFormSentDesc: 'Odpowiemy na podany adres email.',
+    contactFormClose: 'Zamknij',
+    contactFormError: 'Nie udało się wysłać wiadomości. Spróbuj ponownie.',
 
     // Landing page
     landingLogin: 'Zaloguj się',

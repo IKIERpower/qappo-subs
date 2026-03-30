@@ -170,7 +170,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-2">
             <Link
               href="/subscriptions/new"
-              className="flex items-center gap-1.5 bg-primary text-white font-label font-bold text-[11px] uppercase tracking-widest px-3 h-9 hover:opacity-80 transition-opacity"
+              className="flex items-center gap-1.5 bg-primary text-on-primary font-label font-bold text-[11px] uppercase tracking-widest px-3 h-9 hover:opacity-80 transition-opacity"
             >
               <span className="material-symbols-outlined text-[14px]">add</span>
               <span className="hidden md:inline">{t.newEntry}</span>
@@ -180,7 +180,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <div className="md:hidden relative">
               <button
                 onClick={() => setMobileUserMenuOpen(v => !v)}
-                className="w-9 h-9 bg-primary flex items-center justify-center font-label font-bold text-[11px] text-white"
+                className="w-9 h-9 bg-primary flex items-center justify-center font-label font-bold text-[11px] text-on-primary"
               >
                 {initials}
               </button>

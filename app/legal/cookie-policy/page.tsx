@@ -92,8 +92,8 @@ export default function CookiePolicyPage() {
             <h2 className="text-xl font-bold text-on-surface mb-3">6. Contact Us</h2>
             <p>
               If you have any questions about our cookie usage, please contact us at{' '}
-              <Link href="mailto:hello@qappo.pl" className="text-primary hover:text-on-surface">
-                hello@qappo.pl
+                <Link href="mailto:contact.qappo@gmail.com" className="text-primary hover:text-on-surface">
+                    contact.qappo@gmail.com
               </Link>
             </p>
           </section>

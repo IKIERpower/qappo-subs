@@ -31,7 +31,7 @@ export default function Footer() {
               href="https://qappo.pl"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block mt-4 font-label text-xs font-semibold text-primary dark:text-on-surface hover:text-on-surface transition-colors"
+              className="inline-block mt-4 font-label text-xs font-semibold text-primary hover:text-on-surface dark:hover:text-on-surface-variant transition-colors"
             >
               Visit QAPPO.PL →
             </Link>
@@ -45,25 +45,25 @@ export default function Footer() {
             <nav className="space-y-3">
               <Link
                 href="/dashboard"
-                className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary transition-colors"
+                className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary dark:hover:text-on-surface-variant transition-colors"
               >
                 Dashboard
               </Link>
               <Link
                 href="/subscriptions"
-                className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary transition-colors"
+                className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary dark:hover:text-on-surface-variant transition-colors"
               >
                 Subscriptions
               </Link>
               <Link
                 href="/analytics"
-                className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary transition-colors"
+                className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary dark:hover:text-on-surface-variant transition-colors"
               >
                 Analytics
               </Link>
               <Link
                 href="/alerts"
-                className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary transition-colors"
+                className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary dark:hover:text-on-surface-variant transition-colors"
               >
                 Alerts
               </Link>
@@ -78,25 +78,25 @@ export default function Footer() {
             <nav className="space-y-3">
               <Link
                 href="/legal/privacy-policy"
-                className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary transition-colors"
+                className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary dark:hover:text-on-surface-variant transition-colors"
               >
                 {t.privacyPolicy}
               </Link>
               <Link
                 href="/legal/terms-of-service"
-                className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary transition-colors"
+                className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary dark:hover:text-on-surface-variant transition-colors"
               >
                 {t.termsOfService}
               </Link>
               <Link
                 href="/legal/cookie-policy"
-                className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary transition-colors"
+                className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary dark:hover:text-on-surface-variant transition-colors"
               >
                 {t.cookiePolicy}
               </Link>
               <Link
                 href="/legal/gdpr"
-                className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary transition-colors"
+                className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary dark:hover:text-on-surface-variant transition-colors"
               >
                 {t.gdpr}
               </Link>
@@ -111,13 +111,13 @@ export default function Footer() {
             <nav className="space-y-3">
               <Link
                 href="mailto:contact.qappo@gmail.com"
-                className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary transition-colors"
+                className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary dark:hover:text-on-surface-variant transition-colors"
               >
                 {t.contactSupport}
               </Link>
               <Link
                 href="mailto:contact.qappo@gmail.com"
-                className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary transition-colors"
+                className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary dark:hover:text-on-surface-variant transition-colors"
               >
                 {t.emailQAPPO}
               </Link>
@@ -125,7 +125,7 @@ export default function Footer() {
                 href="https://qappo.pl"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary transition-colors"
+                className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary dark:hover:text-on-surface-variant transition-colors"
               >
                 {t.qappoWebsite}
               </Link>
@@ -142,7 +142,7 @@ export default function Footer() {
               href="https://qappo.pl"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary dark:text-on-surface hover:text-on-surface transition-colors font-semibold"
+              className="text-primary hover:text-on-surface dark:hover:text-on-surface-variant transition-colors font-semibold"
             >
               QAPPO
             </Link>

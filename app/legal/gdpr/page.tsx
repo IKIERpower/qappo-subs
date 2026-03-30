@@ -122,8 +122,8 @@ export default function GDPRPage() {
             <div className="bg-surface-container-low p-4 rounded-lg my-4">
               <p className="font-label text-sm">
                 Email:{' '}
-                <Link href="mailto:hello@qappo.pl" className="text-primary hover:text-on-surface">
-                  hello@qappo.pl
+                <Link href="mailto:contact.qappo@gmail.com" className="text-primary hover:text-on-surface">
+                    contact.qappo@gmail.com
                 </Link>
               </p>
               <p className="font-label text-sm mt-2">

@@ -6,7 +6,8 @@
 @tailwind utilities;
 
 :root {
-  --color-primary: #000000;
+  --color-primary-rgb: 0 0 0;
+  --color-on-primary-rgb: 255 255 255;
   --color-secondary: #006D42;
   --color-tertiary: #7D0015;
 
@@ -16,11 +17,14 @@
   --bg-surface-container-low: #F3F3F5;
   --bg-surface-container: #EDEEF0;
   --bg-surface-container-high: #E7E8EB;
+  --bg-surface-container-highest: #E2E2E4;
   --text-on-surface: #1A1C1D;
   --text-on-surface-variant: #777777;
 }
 
 html.dark {
+  --color-primary-rgb: 255 255 255;
+  --color-on-primary-rgb: 18 18 18;
   --color-secondary: #1FFF51;
   --color-tertiary: #FF5555;
 
@@ -29,6 +33,7 @@ html.dark {
   --bg-surface-container-low: #262626;
   --bg-surface-container: #2D2D2D;
   --bg-surface-container-high: #333333;
+  --bg-surface-container-highest: #3D3D3D;
   --text-on-surface: #F5F5F5;
   --text-on-surface-variant: #B0B0B0;
 
@@ -107,6 +112,9 @@ html.theme-transition *::after {
 /* Selection */
 ::selection {
   background: rgba(0, 0, 0, 0.12);
+}
+html.dark ::selection {
+  background: rgba(255, 255, 255, 0.15);
 }
 
 /* Transitions */

@@ -10,7 +10,8 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: '#000000',
+        primary: 'rgb(var(--color-primary-rgb) / <alpha-value>)',
+        'on-primary': 'rgb(var(--color-on-primary-rgb) / <alpha-value>)',
         secondary: 'var(--color-secondary)',
         tertiary: 'var(--color-tertiary)',
         surface: 'var(--bg-surface)',
@@ -18,7 +19,7 @@ const config: Config = {
         'surface-container-low': 'var(--bg-surface-container-low)',
         'surface-container': 'var(--bg-surface-container)',
         'surface-container-high': 'var(--bg-surface-container-high)',
-        'surface-container-highest': '#E2E2E4',
+        'surface-container-highest': 'var(--bg-surface-container-highest)',
         'on-surface': 'var(--text-on-surface)',
         'on-surface-variant': 'var(--text-on-surface-variant)',
         'outline': '#777777',
@@ -62,6 +63,14 @@ const config: Config = {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '0.4' },
         },
+        'backdrop-in': {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        'modal-in': {
+          '0%': { opacity: '0', transform: 'scale(0.95) translateY(8px)' },
+          '100%': { opacity: '1', transform: 'scale(1) translateY(0)' },
+        },
       },
       animation: {
         'fade-up': 'fade-up 0.4s ease-out both',
@@ -69,6 +78,8 @@ const config: Config = {
         'slide-right': 'slide-right 0.35s ease-out',
         'shimmer': 'shimmer 2s infinite linear',
         'pulse-soft': 'pulse-soft 2s ease-in-out infinite',
+        'backdrop-in': 'backdrop-in 0.2s ease-out both',
+        'modal-in': 'modal-in 0.25s ease-out both',
       },
     },
   },

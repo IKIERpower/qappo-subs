@@ -43,7 +43,7 @@ export default function LoginPage() {
     <>
     <div className="min-h-screen bg-surface flex">
       {/* Left panel — branding */}
-      <div className="hidden lg:flex w-[480px] min-w-[480px] bg-primary flex-col justify-between p-12">
+      <div className="hidden lg:flex w-[480px] min-w-[480px] bg-black flex-col justify-between p-12">
         <div>
           <div className="font-headline font-bold text-xl tracking-tighter text-white">SubManager</div>
           <div className="font-label text-[10px] uppercase tracking-widest text-white/40 mt-0.5">Sub Manager by Qappo</div>
@@ -158,7 +158,7 @@ export default function LoginPage() {
               <button
                 onClick={handleLogin}
                 disabled={loading}
-                className="w-full bg-primary text-white font-label font-bold text-xs uppercase tracking-widest py-3.5 hover:bg-on-surface transition-colors disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
+                className="w-full bg-primary text-on-primary font-label font-bold text-xs uppercase tracking-widest py-3.5 hover:bg-primary/85 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
               >
                 {loading ? (
                   <>
