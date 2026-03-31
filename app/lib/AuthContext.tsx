@@ -19,6 +19,9 @@ const AuthContext = createContext<AuthContextType>({
     signOut: async () => {},
 })
 
+// Paths that don't require authentication
+const PUBLIC_PATHS = ['/', '/auth/login', '/auth/register', '/auth/reset', '/auth/callback', '/auth/update-password']
+
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null)
     const [session, setSession] = useState<Session | null>(null)
@@ -32,7 +35,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(session?.user ?? null)
             setLoading(false)
 
-            if (!session && !pathname.startsWith('/auth')) {
+            const isPublicPath = PUBLIC_PATHS.includes(pathname) || pathname.startsWith('/legal')
+            if (!session && !isPublicPath) {
                 router.replace('/auth/login')
             }
         })
@@ -44,7 +48,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(session?.user ?? null)
             setLoading(false)
 
-            if (!session && !pathname.startsWith('/auth')) {
+            const isPublicPath = PUBLIC_PATHS.includes(pathname) || pathname.startsWith('/legal')
+            if (!session && !isPublicPath) {
                 router.replace('/auth/login')
             }
         })
@@ -53,7 +58,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, [router, pathname])
 
     useEffect(() => {
-        if (!loading && !user && !pathname.startsWith('/auth')) {
+        const isPublicPath = PUBLIC_PATHS.includes(pathname) || pathname.startsWith('/legal')
+        if (!loading && !user && !isPublicPath) {
             router.replace('/auth/login')
         }
     }, [loading, user, pathname, router])

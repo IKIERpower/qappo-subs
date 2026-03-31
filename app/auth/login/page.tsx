@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import clsx from 'clsx'
 import Footer from '@/app/components/Footer'
+import Navbar from '@/app/components/Navbar'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -41,13 +42,14 @@ export default function LoginPage() {
 
   return (
     <>
+    <Navbar />
     <div className="min-h-screen bg-surface flex">
       {/* Left panel — branding */}
       <div className="hidden lg:flex w-[480px] min-w-[480px] bg-black flex-col justify-between p-12">
-        <div>
-          <div className="font-headline font-bold text-xl tracking-tighter text-white">SubManager</div>
-          <div className="font-label text-[10px] uppercase tracking-widest text-white/40 mt-0.5">Sub Manager by Qappo</div>
-        </div>
+        <Link href="/" className="group block">
+          <div className="font-headline font-bold text-xl tracking-tighter text-white group-hover:text-white/80 transition-colors">SubManager</div>
+          <div className="font-label text-[10px] uppercase tracking-widest text-white/40 mt-0.5 group-hover:text-white/30 transition-colors">Sub Manager by Qappo</div>
+        </Link>
 
         <div className="space-y-8">
           <div className="space-y-3">
@@ -90,6 +92,12 @@ export default function LoginPage() {
 
           {/* Mobile logo */}
           <div className="w-full">
+            <div className="lg:hidden mb-10">
+              <Link href="/" className="font-headline font-bold text-xl tracking-tighter text-on-surface">
+                SubManager
+              </Link>
+            </div>
+
             <div className="mb-8">
               <h1 className="font-headline font-bold text-2xl tracking-tighter text-on-surface">Sign in</h1>
               <p className="font-label text-sm text-on-surface-variant mt-1">Access your financial ledger.</p>
@@ -115,14 +123,6 @@ export default function LoginPage() {
 
               {/* Password */}
               <div>
-                {/*<div className="flex items-center justify-between mb-2">*/}
-                {/*  <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">*/}
-                {/*    Password*/}
-                {/*  </label>*/}
-                {/*  <Link href="/auth/reset" className="font-label text-[10px] text-on-surface-variant hover:text-on-surface transition-colors uppercase tracking-wider">*/}
-                {/*    Forgot?*/}
-                {/*  </Link>*/}
-                {/*</div>*/}
                   <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant block mb-2">
                       PASSWORD
                   </label>
@@ -172,15 +172,13 @@ export default function LoginPage() {
             </div>
 
             <div className="mt-8 pt-6 border-t border-outline-variant/20 text-center">
-              {/*<span className="font-label text-xs text-on-surface-variant">No account? </span>*/}
-              {/*<Link href="/auth/register" className="font-label text-xs text-on-surface font-semibold hover:underline">*/}
-              {/*  Create one →*/}
-              {/*</Link>*/}
+                <span className="font-label text-xs text-on-surface-variant">No account? </span>
+                <Link href="/auth/register" className="font-label text-xs text-on-surface font-semibold hover:underline">
+                  Create one →
+                </Link>
             </div>
           </div>
         </div>
-
-        {/* Mobile footer — hidden on desktop */}
       </div>
     </div>
     <Footer />

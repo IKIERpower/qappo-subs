@@ -2,12 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import clsx from 'clsx'
 import { useAuth } from '@/app/lib/AuthContext'
 import { useTheme } from '@/app/lib/ThemeContext'
 import { useLocale } from '@/app/lib/LocaleContext'
 import { useTranslation } from '@/app/lib/translations'
+import { supabase } from '@/app/lib/supabase'
 
 import Footer from '@/app/components/Footer'
 import FooterCompact from '@/app/components/FooterCompact'
@@ -32,8 +33,23 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [signingOut, setSigningOut] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)   // desktop dropdown
   const [mobileUserMenuOpen, setMobileUserMenuOpen] = useState(false) // mobile dropdown
+  const [displayName, setDisplayName] = useState('')
 
-  const initials = (user?.email?.split('@')[0] ?? 'U').slice(0, 2).toUpperCase()
+  // Load display name from profiles
+  useEffect(() => {
+    if (!user) return
+    supabase
+      .from('profiles')
+      .select('display_name')
+      .eq('id', user.id)
+      .single()
+      .then(({ data }) => {
+        if (data?.display_name) setDisplayName(data.display_name)
+      })
+  }, [user])
+
+  const initials = (displayName || (user?.email?.split('@')[0] ?? 'U')).slice(0, 2).toUpperCase()
+  const sidebarName = displayName || user?.email?.split('@')[0] || '—'
   const currentNav = navItems.find(n => pathname.startsWith(n.href))
   const currentPageData = currentNav ?? pageMap[pathname] ?? { icon: 'dashboard', labelKey: 'dashboard' }
   const currentPageLabel = t[currentPageData.labelKey as keyof typeof t] || 'Dashboard'
@@ -100,7 +116,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 {initials}
               </div>
               <div className="flex-1 min-w-0 text-left">
-                <div className="font-headline font-semibold text-xs text-on-surface truncate">{user?.email ?? '—'}</div>
+                <div className="font-headline font-semibold text-xs text-on-surface truncate">{sidebarName}</div>
                 <div className="font-label text-[9px] uppercase tracking-widest text-secondary">Authenticated</div>
               </div>
               <span className={clsx('material-symbols-outlined text-[14px] text-on-surface-variant transition-transform duration-150', userMenuOpen ? 'rotate-180' : '')}>expand_more</span>

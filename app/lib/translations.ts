@@ -40,11 +40,24 @@ export const translations = {
     accountSettings: 'Account Settings',
     profile: 'Profile',
     active: 'Active',
+    displayName: 'Display Name',
+    displayNamePlaceholder: 'Your name',
+    displayNameSaved: 'Display name saved.',
+    saveDisplayName: 'Save Name',
+    changeEmail: 'Change Email',
+    newEmail: 'New Email Address',
+    newEmailPlaceholder: 'new@example.com',
+    changeEmailButton: 'Send Confirmation',
+    emailChangeRequested: 'Confirmation email sent to your new address. Check your inbox and click the link to confirm.',
+    emailRequired: 'Please enter a new email address.',
+    emailSameAsCurrent: 'This is already your current email.',
     security: 'Security',
+    sendPasswordResetLink: 'Send Password Reset Link',
+    passwordResetSent: 'Password reset link sent to your email. Check your inbox and click the link to set a new password.',
     newPassword: 'New Password',
     confirmPassword: 'Confirm Password',
-    changePassword: 'Change Password',
-    passwordChanged: 'Password has been changed.',
+    updatePassword: 'Update Password',
+    passwordUpdated: 'Your password has been updated successfully.',
     passwordRequired: 'Please enter a new password.',
     passwordMinLength: 'Minimum 6 characters.',
     passwordMismatch: 'Passwords do not match.',
@@ -172,11 +185,24 @@ export const translations = {
     accountSettings: 'Ustawienia konta',
     profile: 'Profil',
     active: 'Aktywne',
+    displayName: 'Nazwa wyświetlana',
+    displayNamePlaceholder: 'Twoje imię',
+    displayNameSaved: 'Nazwa wyświetlana zapisana.',
+    saveDisplayName: 'Zapisz nazwę',
+    changeEmail: 'Zmiana adresu e-mail',
+    newEmail: 'Nowy adres e-mail',
+    newEmailPlaceholder: 'nowy@example.com',
+    changeEmailButton: 'Wyślij potwierdzenie',
+    emailChangeRequested: 'Email z potwierdzeniem został wysłany na nowy adres. Sprawdź skrzynkę i kliknij link, aby potwierdzić zmianę.',
+    emailRequired: 'Podaj nowy adres email.',
+    emailSameAsCurrent: 'To jest Twój obecny adres email.',
     security: 'Bezpieczeństwo',
+    sendPasswordResetLink: 'Wyślij link do zmiany hasła',
+    passwordResetSent: 'Link do zmiany hasła został wysłany na Twój email. Sprawdź skrzynkę i kliknij w link, aby ustawić nowe hasło.',
     newPassword: 'Nowe hasło',
     confirmPassword: 'Potwierdź hasło',
-    changePassword: 'Zmień hasło',
-    passwordChanged: 'Hasło zostało zmienione.',
+    updatePassword: 'Zaktualizuj hasło',
+    passwordUpdated: 'Twoje hasło zostało pomyślnie zaktualizowane.',
     passwordRequired: 'Proszę podaj nowe hasło.',
     passwordMinLength: 'Minimum 6 znaków.',
     passwordMismatch: 'Hasła nie są identyczne.',
@@ -265,8 +291,10 @@ export const translations = {
   },
 }
 
-export function useTranslation(locale: 'en' | 'pl') {
-  return translations[locale] as typeof translations.en
+export type TranslationKeys = typeof translations.en
+
+export function useTranslation(locale: 'en' | 'pl'): TranslationKeys {
+  return translations[locale] as TranslationKeys
 }
 
 
