@@ -1,17 +1,21 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { useLocale } from '@/app/lib/LocaleContext'
 import { useTranslation } from '@/app/lib/translations'
+import ContactModal from '@/app/components/ContactModal'
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
   const { locale } = useLocale()
   const t = useTranslation(locale)
+  const [contactModalOpen, setContactModalOpen] = useState(false)
 
   return (
-    <footer className="bg-surface-container-lowest border-t border-outline-variant/20 mt-auto">
-      <div className="w-full max-w-7xl mx-auto px-6 py-12 md:py-16">
+    <>
+      <footer className="bg-surface-container-lowest border-t border-outline-variant/20 mt-auto">
+        <div className="w-full max-w-7xl mx-auto px-6 py-12 md:py-16">
         {/* Main content */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
           {/* Brand */}
@@ -103,34 +107,34 @@ export default function Footer() {
             </nav>
           </div>
 
-          {/* Support */}
-          <div>
-            <h4 className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant dark:text-on-surface-variant/85 font-semibold mb-4">
-              {t.support}
-            </h4>
-            <nav className="space-y-3">
-              <Link
-                href="mailto:contact.qappo@gmail.com"
-                className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary dark:hover:text-on-surface-variant transition-colors"
-              >
-                {t.contactSupport}
-              </Link>
-              <Link
-                href="mailto:contact.qappo@gmail.com"
-                className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary dark:hover:text-on-surface-variant transition-colors"
-              >
-                {t.emailQAPPO}
-              </Link>
-              <Link
-                href="https://qappo.pl"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary dark:hover:text-on-surface-variant transition-colors"
-              >
-                {t.qappoWebsite}
-              </Link>
-            </nav>
-          </div>
+           {/* Support */}
+           <div>
+             <h4 className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant dark:text-on-surface-variant/85 font-semibold mb-4">
+               {t.support}
+             </h4>
+             <nav className="space-y-3">
+               <button
+                 onClick={() => setContactModalOpen(true)}
+                 className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary dark:hover:text-on-surface-variant transition-colors text-left"
+               >
+                 {t.contactSupport}
+               </button>
+               <button
+                 onClick={() => setContactModalOpen(true)}
+                 className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary dark:hover:text-on-surface-variant transition-colors text-left"
+               >
+                 {t.emailQAPPO}
+               </button>
+               <Link
+                 href="https://qappo.pl"
+                 target="_blank"
+                 rel="noopener noreferrer"
+                 className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary dark:hover:text-on-surface-variant transition-colors"
+               >
+                 {t.qappoWebsite}
+               </Link>
+             </nav>
+           </div>
         </div>
 
         {/* Divider */}
@@ -148,15 +152,15 @@ export default function Footer() {
             </Link>
           </div>
 
-          {/* Social / Additional links */}
-          <div className="flex items-center gap-6 text-on-surface-variant dark:text-on-surface-variant/85 md:ml-auto">
-            <Link
-              href="mailto:contact.qappo@gmail.com"
-              className="font-label text-xs hover:text-primary transition-colors"
-              title="Contact QAPPO"
-            >
-              {t.contact}
-            </Link>
+           {/* Social / Additional links */}
+           <div className="flex items-center gap-6 text-on-surface-variant dark:text-on-surface-variant/85 md:ml-auto">
+             <button
+               onClick={() => setContactModalOpen(true)}
+               className="font-label text-xs hover:text-primary transition-colors"
+               title="Contact QAPPO"
+             >
+               {t.contact}
+             </button>
             <span className="text-outline-variant/40">•</span>
             <Link
               href="https://qappo.pl"
@@ -171,6 +175,8 @@ export default function Footer() {
         </div>
       </div>
     </footer>
+    <ContactModal open={contactModalOpen} onClose={() => setContactModalOpen(false)} />
+    </>
   )
 }
 

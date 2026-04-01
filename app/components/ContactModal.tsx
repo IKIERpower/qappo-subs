@@ -42,10 +42,20 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
       setError('')
     } else {
       setAnimating(false)
-      const timer = setTimeout(() => setVisible(false), 200)
+      const timer = setTimeout(() => setVisible(false), 300)
       return () => clearTimeout(timer)
     }
   }, [open])
+
+  // Auto-close after success
+  useEffect(() => {
+    if (sent) {
+      const timer = setTimeout(() => {
+        onClose()
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [sent, onClose])
 
   // Close on Escape
   const handleClose = useCallback(() => {
@@ -108,15 +118,15 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
     <div
       ref={backdropRef}
       onClick={handleBackdropClick}
-      className={`fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm p-4 transition-all duration-200 ease-out ${
-        animating ? 'bg-black/50 opacity-100' : 'bg-black/0 opacity-0'
+      className={`fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm p-4 transition-all duration-300 ease-out ${
+        animating ? 'bg-black/50 opacity-100' : 'bg-black/0 opacity-0 pointer-events-none'
       }`}
     >
       <div
-        className={`bg-surface w-full max-w-md rounded-2xl shadow-2xl border border-outline-variant/20 overflow-hidden transition-all duration-250 ease-out ${
+        className={`bg-surface w-full max-w-md rounded-2xl shadow-2xl border border-outline-variant/20 overflow-hidden transition-all duration-300 ease-out ${
           animating
             ? 'opacity-100 scale-100 translate-y-0'
-            : 'opacity-0 scale-95 translate-y-2'
+            : 'opacity-0 scale-95 translate-y-4'
         }`}
       >
         {/* Header */}
@@ -137,8 +147,10 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
 
         {sent ? (
           /* Success state */
-          <div className="px-6 pb-6 pt-4 text-center animate-fade-up">
-            <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-4">
+          <div className={`px-6 pb-6 pt-4 text-center transition-all duration-300 ${
+            sent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+          }`}>
+            <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-4 animate-bounce" style={{ animationDuration: '1s' }}>
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-600 dark:text-green-400" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>
@@ -155,12 +167,12 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
         ) : (
           /* Form */
           <form onSubmit={handleSubmit} className="px-6 pb-6 pt-2 space-y-4">
-            <p className="font-label text-xs text-on-surface-variant">
+            <p className="font-label text-xs text-on-surface-variant animate-fade-in">
               {t.contactFormDesc}
             </p>
 
             {/* Email */}
-            <div>
+            <div className="animate-fade-in" style={{ animationDelay: '50ms' }}>
               <label className="block font-label text-[11px] uppercase tracking-wider text-on-surface-variant mb-1.5">
                 Email <span className="text-error">*</span>
               </label>
@@ -175,7 +187,7 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
             </div>
 
             {/* Name (optional) */}
-            <div>
+            <div className="animate-fade-in" style={{ animationDelay: '100ms' }}>
               <label className="block font-label text-[11px] uppercase tracking-wider text-on-surface-variant mb-1.5">
                 {t.contactFormName} <span className="text-on-surface-variant/50 normal-case">({t.contactFormOptional})</span>
               </label>
@@ -189,7 +201,7 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
             </div>
 
             {/* Subject */}
-            <div>
+            <div className="animate-fade-in" style={{ animationDelay: '150ms' }}>
               <label className="block font-label text-[11px] uppercase tracking-wider text-on-surface-variant mb-1.5">
                 {t.contactFormSubject} <span className="text-error">*</span>
               </label>
@@ -204,7 +216,7 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
             </div>
 
             {/* Message */}
-            <div>
+            <div className="animate-fade-in" style={{ animationDelay: '200ms' }}>
               <label className="block font-label text-[11px] uppercase tracking-wider text-on-surface-variant mb-1.5">
                 {t.contactFormMessage} <span className="text-error">*</span>
               </label>
@@ -220,11 +232,11 @@ export default function ContactModal({ open, onClose }: ContactModalProps) {
 
             {/* Error */}
             {error && (
-              <p className="font-label text-xs text-error">{error}</p>
+              <p className="font-label text-xs text-error animate-fade-in">{error}</p>
             )}
 
             {/* Actions */}
-            <div className="flex items-center justify-end gap-3 pt-2">
+            <div className="flex items-center justify-end gap-3 pt-2 animate-fade-in" style={{ animationDelay: '250ms' }}>
               <button
                 type="button"
                 onClick={handleClose}

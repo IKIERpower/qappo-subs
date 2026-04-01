@@ -6,7 +6,7 @@ import AppLayout from '@/app/components/AppLayout'
 import Link from 'next/link'
 import clsx from 'clsx'
 
-const CATEGORIES = ['Entertainment', 'Cloud/Hosting', 'Dev Tools', 'Development', 'Utilities', 'Productivity', 'Other']
+const CATEGORIES = ['Entertainment', 'Dev Tools', 'Development', 'Utilities', 'Productivity']
 const CURRENCIES = ['PLN', 'USD', 'EUR', 'GBP']
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
@@ -36,6 +36,8 @@ export default function EditSubscriptionPage() {
     const [form, setForm] = useState<Partial<Subscription>>({})
     const [customCurrency, setCustomCurrency] = useState(false)
     const [customCurrencyValue, setCustomCurrencyValue] = useState('')
+    const [customCategory, setCustomCategory] = useState(false)
+    const [customCategoryValue, setCustomCategoryValue] = useState('')
 
     useEffect(() => {
         async function load() {
@@ -45,6 +47,10 @@ export default function EditSubscriptionPage() {
                 if (!CURRENCIES.includes(data.currency)) {
                     setCustomCurrency(true)
                     setCustomCurrencyValue(data.currency)
+                }
+                if (!CATEGORIES.includes(data.category)) {
+                    setCustomCategory(true)
+                    setCustomCategoryValue(data.category)
                 }
             }
             setLoading(false)
@@ -187,25 +193,67 @@ export default function EditSubscriptionPage() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <FieldLabel>Category</FieldLabel>
-                            <select value={form.category ?? ''} onChange={e => set('category', e.target.value)}
-                                    className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant/30 text-on-surface font-label text-sm focus:outline-none focus:border-primary transition-colors">
-                                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-                            </select>
+                    <div>
+                        <FieldLabel>Category</FieldLabel>
+                        <div className="grid grid-cols-6 gap-1">
+                            {CATEGORIES.map(c => (
+                                <button
+                                    key={c}
+                                    type="button"
+                                    onClick={() => { set('category', c); setCustomCategory(false) }}
+                                    className={clsx(
+                                        'py-2.5 px-1 font-label text-[9px] uppercase tracking-wider border transition-all text-center line-clamp-2',
+                                        !customCategory && form.category === c
+                                            ? 'bg-primary text-white border-primary'
+                                            : 'bg-surface-container-low border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-on-surface'
+                                    )}
+                                >
+                                    {c}
+                                </button>
+                            ))}
+                            <button
+                                type="button"
+                                onClick={() => { setCustomCategory(true); set('category', customCategoryValue || '') }}
+                                className={clsx(
+                                    'py-2.5 px-1 font-label text-[9px] uppercase tracking-wider border transition-all text-center',
+                                    customCategory
+                                        ? 'bg-primary text-white border-primary'
+                                        : 'bg-surface-container-low border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-on-surface'
+                                )}
+                            >
+                                Other
+                            </button>
                         </div>
-                        <div>
-                            <FieldLabel>Status</FieldLabel>
-                            <div className="flex gap-1">
-                                {(['active', 'paused', 'cancelled'] as const).map(s => (
-                                    <button key={s} type="button" onClick={() => set('status', s)}
-                                            className={clsx('flex-1 py-3 font-label text-[10px] uppercase tracking-wider border transition-all',
-                                                form.status === s ? 'bg-primary text-white border-primary' : 'bg-surface-container-low border-outline-variant/30 text-on-surface-variant hover:border-primary')}>
-                                        {s}
-                                    </button>
-                                ))}
+                        <div className={clsx('expand-wrapper', customCategory && 'open')}>
+                            <div className="expand-inner">
+                                <input
+                                    type="text"
+                                    value={customCategoryValue}
+                                    onChange={e => {
+                                        const v = e.target.value.slice(0, 30)
+                                        setCustomCategoryValue(v)
+                                        set('category', v)
+                                    }}
+                                    placeholder="e.g. Gaming, Education"
+                                    maxLength={30}
+                                    autoFocus={customCategory}
+                                    tabIndex={customCategory ? 0 : -1}
+                                    className="w-full mt-2 px-4 py-3 bg-surface-container-low border border-outline-variant/30 text-on-surface font-label text-sm placeholder:text-on-surface-variant focus:outline-none focus:border-primary transition-colors"
+                                />
                             </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <FieldLabel>Status</FieldLabel>
+                        <div className="flex gap-1">
+                            {(['active', 'paused', 'cancelled'] as const).map(s => (
+                                <button key={s} type="button" onClick={() => set('status', s)}
+                                        className={clsx('flex-1 py-3 font-label text-[10px] uppercase tracking-wider border transition-all',
+                                            form.status === s ? 'bg-primary text-white border-primary' : 'bg-surface-container-low border-outline-variant/30 text-on-surface-variant hover:border-primary')}>
+                                    {s}
+                                </button>
+                            ))}
                         </div>
                     </div>
 
