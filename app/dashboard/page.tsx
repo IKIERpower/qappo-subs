@@ -11,6 +11,7 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import { useTheme } from '@/app/lib/ThemeContext'
 import { useLocale } from '@/app/lib/LocaleContext'
 import { useTranslation } from '@/app/lib/translations'
+import { autoRenewSubscriptions } from '@/app/lib/billing'
 
 const CATEGORIES = [
   { name: 'Entertainment', color: '#006D42', darkColor: '#34D399' },
@@ -30,6 +31,9 @@ function getCategoryColor(cat: string, dark = false) {
 
 function monthlyEquivalent(sub: Subscription): number {
   if (sub.status !== 'active') return 0
+  if (sub.billing_cycle === 'weekly') return (sub.cost * 52) / 12
+  if (sub.billing_cycle === 'quarterly') return (sub.cost * 4) / 12
+  if (sub.billing_cycle === 'half-yearly') return (sub.cost * 2) / 12
   if (sub.billing_cycle === 'yearly') return sub.cost / 12
   return sub.cost
 }
@@ -50,7 +54,10 @@ export default function DashboardPage() {
         .select('*')
         .eq('user_id', user!.id)
         .order('created_at', { ascending: false })
-      setSubs(data ?? [])
+      
+      const processedSubs = data ? await autoRenewSubscriptions(data) : []
+      
+      setSubs(processedSubs)
       setLoading(false)
     }
     load()
@@ -77,12 +84,35 @@ export default function DashboardPage() {
   const catEntries = Object.entries(catTotals).sort((a, b) => b[1] - a[1])
   const catTotal = catEntries.reduce((a, [, v]) => a + v, 0)
 
-  // Sparkline data (last 6 months mock based on current burn)
-  const months = ['OCT', 'NOV', 'DEC', 'JAN', 'FEB', 'MAR']
-  const sparkData = months.map((m, i) => ({
-    month: m,
-    value: monthlyBurn * (0.85 + i * 0.032),
-  }))
+   // Calculate realistic 12-month history based on subscription creation dates
+   const calculateMonthlySpend = () => {
+     const data = []
+     const now = new Date()
+     
+     // Generate last 12 months
+     for (let i = 11; i >= 0; i--) {
+       const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1)
+       const monthKey = format(monthDate, 'MMM').toUpperCase()
+       
+       // Sum all subscriptions that were created by this month
+       const spend = subs
+         .filter(s => s.status !== 'cancelled')
+         .filter(sub => {
+           const createdDate = parseISO(sub.created_at)
+           return createdDate <= monthDate
+         })
+         .reduce((sum, sub) => {
+           if (sub.status === 'paused') return sum
+           return sum + monthlyEquivalent(sub)
+         }, 0)
+       
+       data.push({ month: monthKey, value: spend })
+     }
+     
+     return data
+   }
+   
+   const sparkData = calculateMonthlySpend()
 
   if (loading) {
     return (

@@ -45,7 +45,7 @@ export interface Subscription {
   category: string
   cost: number
   currency: string
-  billing_cycle: 'monthly' | 'yearly'
+  billing_cycle: 'weekly' | 'monthly' | 'quarterly' | 'half-yearly' | 'yearly'
   next_billing_date: string | null
   status: 'active' | 'paused' | 'cancelled'
   description?: string

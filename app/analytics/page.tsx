@@ -9,6 +9,7 @@ import {
   ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell, PieChart, Pie,
 } from 'recharts'
+import { autoRenewSubscriptions, getMonthlyEquivalent } from '@/app/lib/billing'
 
 const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 const CAT_COLORS: Record<string, string> = {
@@ -23,7 +24,7 @@ const CAT_COLORS: Record<string, string> = {
 
 function monthlyEquivalent(sub: Subscription): number {
   if (sub.status !== 'active') return 0
-  return sub.billing_cycle === 'yearly' ? sub.cost / 12 : sub.cost
+  return getMonthlyEquivalent(sub.cost, sub.billing_cycle)
 }
 
 interface Scenario { id: string; label: string; desc: string; checked: boolean }
@@ -41,7 +42,11 @@ export default function AnalyticsPage() {
   useEffect(() => {
     if (!user) return
     supabase.from('subscriptions').select('*').eq('user_id', user.id)
-      .then(({ data }) => { setSubs(data ?? []); setLoading(false) })
+      .then(async ({ data }) => {
+        const processedSubs = data ? await autoRenewSubscriptions(data) : []
+        setSubs(processedSubs)
+        setLoading(false)
+      })
   }, [user])
 
   function toggleScenario(id: string) {
@@ -56,22 +61,27 @@ export default function AnalyticsPage() {
   const baseMonthly = subs.filter(s => {
     if (s.status === 'cancelled') return false
     if (s.status === 'paused' && !inclPaused) return false
-    if (noAnnual && s.billing_cycle === 'yearly') return false
+    if (noAnnual && (s.billing_cycle === 'yearly' || s.billing_cycle === 'half-yearly' || s.billing_cycle === 'quarterly')) return false
     return true
   }).reduce((a, s) => a + monthlyEquivalent(s), 0) * factor
 
-  const monthlyData = MONTHS.map((month, i) => {
-    let base = baseMonthly
-    subs.forEach(s => {
-      if (s.status === 'cancelled') return
-      if (s.status === 'paused' && !inclPaused) return
-      if (s.billing_cycle === 'yearly' && !noAnnual && s.next_billing_date) {
-        const m = parseInt(s.next_billing_date.split('-')[1]) - 1
-        if (m === i) base += (s.cost * factor) - (s.cost / 12 * factor)
-      }
-    })
-    return { month, value: Math.max(0, base) }
-  })
+   const monthlyData = MONTHS.map((month, i) => {
+     let base = baseMonthly
+     subs.forEach(s => {
+       if (s.status === 'cancelled') return
+       if (s.status === 'paused' && !inclPaused) return
+       // Only add spike for non-monthly/weekly subscriptions on their billing date
+       if (s.billing_cycle !== 'monthly' && s.billing_cycle !== 'weekly' && !noAnnual && s.next_billing_date) {
+         const date = new Date(s.next_billing_date)
+         const m = date.getMonth()
+         if (m === i) {
+           // Add the full payment amount when billing occurs
+           base += s.cost * factor
+         }
+       }
+     })
+     return { month, value: Math.max(0, base) }
+   })
 
   let cum = 0
   const chartData = monthlyData.map(d => { cum += d.value; return { ...d, cumulative: cum } })

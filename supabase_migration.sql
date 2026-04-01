@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS subscriptions (
     cost            numeric(10,2) NOT NULL,
     currency        text NOT NULL DEFAULT 'PLN',
     billing_cycle   text NOT NULL DEFAULT 'monthly'
-    CHECK (billing_cycle IN ('monthly', 'yearly')),
+    CHECK (billing_cycle IN ('weekly', 'monthly', 'quarterly', 'half-yearly', 'yearly')),
     next_billing_date date,
     status          text NOT NULL DEFAULT 'active'
     CHECK (status IN ('active', 'paused', 'cancelled')),

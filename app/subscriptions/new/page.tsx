@@ -8,7 +8,7 @@ import AppLayout from '@/app/components/AppLayout'
 import Link from 'next/link'
 import clsx from 'clsx'
 
-const CATEGORIES = ['Entertainment', 'Cloud/Hosting', 'Dev Tools', 'Development', 'Utilities', 'Productivity', 'Other']
+const CATEGORIES = ['Entertainment', 'Dev Tools', 'Development', 'Utilities', 'Productivity']
 const CURRENCIES = ['PLN', 'USD', 'EUR', 'GBP']
 
 interface FormState {
@@ -16,9 +16,9 @@ interface FormState {
   category: string
   cost: string
   currency: string
-  billing_cycle: 'monthly' | 'yearly'
+  billing_cycle: 'weekly' | 'monthly' | 'quarterly' | 'half-yearly' | 'yearly'
   next_billing_date: string
-  status: 'active' | 'paused'
+  status: 'active' | 'paused' | 'cancelled'
   notes: string
   website: string
 }
@@ -52,21 +52,6 @@ function Input({ className, ...props }: React.InputHTMLAttributes<HTMLInputEleme
   )
 }
 
-function Select({ className, children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement>) {
-  return (
-    <select
-      {...props}
-      className={clsx(
-        'w-full px-4 py-3 bg-surface-container-low border border-outline-variant/30 text-on-surface font-label text-sm',
-        'focus:outline-none focus:border-primary transition-colors cursor-pointer',
-        className
-      )}
-    >
-      {children}
-    </select>
-  )
-}
-
 export default function NewSubscriptionPage() {
   const router = useRouter()
   const { user } = useAuth()
@@ -75,6 +60,8 @@ export default function NewSubscriptionPage() {
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({})
   const [customCurrency, setCustomCurrency] = useState(false)
   const [customCurrencyValue, setCustomCurrencyValue] = useState('')
+  const [customCategory, setCustomCategory] = useState(false)
+  const [customCategoryValue, setCustomCategoryValue] = useState('')
 
   function set(key: keyof FormState, value: string) {
     setForm(prev => ({ ...prev, [key]: value }))
@@ -96,25 +83,29 @@ export default function NewSubscriptionPage() {
   //   return url
   // }
 
-  async function handleSubmit() {
-    const errs = validate()
-    if (Object.keys(errs).length > 0) { setErrors(errs); return }
-    setSaving(true)
-    const { error } = await supabase.from('subscriptions').insert({
-      name: form.name.trim(),
-      category: form.category,
-      cost: parseFloat(form.cost),
-      currency: form.currency,
-      billing_cycle: form.billing_cycle,
-      next_billing_date: form.next_billing_date || null,
-      status: form.status,
-      notes: form.notes || null,
-      // website: form.website ? normalizeUrl(form.website) : null,
-      user_id: user!.id,
-    })
-    setSaving(false)
-    if (!error) router.push('/subscriptions')
-  }
+   async function handleSubmit() {
+     const errs = validate()
+     if (Object.keys(errs).length > 0) { setErrors(errs); return }
+     setSaving(true)
+     const { error } = await supabase.from('subscriptions').insert({
+       name: form.name.trim(),
+       category: form.category,
+       cost: parseFloat(form.cost),
+       currency: form.currency,
+       billing_cycle: form.billing_cycle,
+       next_billing_date: form.next_billing_date || null,
+       status: form.status,
+       notes: form.notes || null,
+       // website: form.website ? normalizeUrl(form.website) : null,
+       user_id: user!.id,
+     })
+     setSaving(false)
+     if (error) {
+       alert(`Error: ${error.message}`)
+       return
+     }
+     router.push('/subscriptions')
+   }
 
   const monthlyCost = form.billing_cycle === 'yearly'
     ? (parseFloat(form.cost) || 0) / 12
@@ -238,25 +229,34 @@ export default function NewSubscriptionPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <FieldLabel>Billing Cycle</FieldLabel>
-              <div className="flex gap-1">
-                {(['monthly', 'yearly'] as const).map(cycle => (
-                  <button
-                    key={cycle}
-                    type="button"
-                    onClick={() => set('billing_cycle', cycle)}
-                    className={clsx(
-                      'flex-1 py-3 font-label text-xs uppercase tracking-wider border transition-all',
-                      form.billing_cycle === cycle
-                        ? 'bg-primary text-white border-primary'
-                        : 'bg-surface-container-low border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-on-surface'
-                    )}
-                  >
-                    {cycle}
-                  </button>
-                ))}
+              <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
+                {(['weekly', 'monthly', 'quarterly', 'half-yearly', 'yearly'] as const).map(cycle => {
+                  const labels = {
+                    weekly: 'Weekly',
+                    monthly: 'Monthly',
+                    quarterly: 'Every 3 Months',
+                    'half-yearly': 'Every 6 Months',
+                    yearly: 'Yearly'
+                  }
+                  return (
+                    <button
+                      key={cycle}
+                      type="button"
+                      onClick={(e) => { e.preventDefault(); set('billing_cycle', cycle); }}
+                      className={clsx(
+                        'py-2.5 px-1 font-label text-[9px] uppercase tracking-wider border transition-all text-center',
+                        form.billing_cycle === cycle
+                          ? 'bg-primary text-white border-primary'
+                          : 'bg-surface-container-low border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-on-surface'
+                      )}
+                    >
+                      {labels[cycle]}
+                    </button>
+                  )
+                })}
               </div>
             </div>
             <div>
@@ -269,34 +269,77 @@ export default function NewSubscriptionPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <FieldLabel>Category</FieldLabel>
-              <Select value={form.category} onChange={e => set('category', e.target.value)}>
-                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-              </Select>
-            </div>
-            <div>
-              <FieldLabel>Status</FieldLabel>
-              <div className="flex gap-1">
-                {(['active', 'paused'] as const).map(s => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => set('status', s)}
-                    className={clsx(
-                      'flex-1 py-3 font-label text-xs uppercase tracking-wider border transition-all',
-                      form.status === s
-                        ? 'bg-primary text-white border-primary'
-                        : 'bg-surface-container-low border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-on-surface'
-                    )}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
+           <div>
+             <FieldLabel>Category</FieldLabel>
+             <div className="grid grid-cols-6 gap-1">
+               {CATEGORIES.map(c => (
+                 <button
+                   key={c}
+                   type="button"
+                   onClick={() => { set('category', c); setCustomCategory(false) }}
+                   className={clsx(
+                     'py-2.5 px-1 font-label text-[9px] uppercase tracking-wider border transition-all text-center line-clamp-2',
+                     !customCategory && form.category === c
+                       ? 'bg-primary text-white border-primary'
+                       : 'bg-surface-container-low border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-on-surface'
+                   )}
+                 >
+                   {c}
+                 </button>
+               ))}
+               <button
+                 type="button"
+                 onClick={() => { setCustomCategory(true); set('category', customCategoryValue || '') }}
+                 className={clsx(
+                   'py-2.5 px-1 font-label text-[9px] uppercase tracking-wider border transition-all text-center',
+                   customCategory
+                     ? 'bg-primary text-white border-primary'
+                     : 'bg-surface-container-low border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-on-surface'
+                 )}
+               >
+                 Other
+               </button>
+             </div>
+             <div className={clsx('expand-wrapper', customCategory && 'open')}>
+               <div className="expand-inner">
+                 <input
+                   type="text"
+                   value={customCategoryValue}
+                   onChange={e => {
+                     const v = e.target.value.slice(0, 30)
+                     setCustomCategoryValue(v)
+                     set('category', v)
+                   }}
+                   placeholder="e.g. Gaming, Education"
+                   maxLength={30}
+                   autoFocus={customCategory}
+                   tabIndex={customCategory ? 0 : -1}
+                   className="w-full mt-2 px-4 py-3 bg-surface-container-low border border-outline-variant/30 text-on-surface font-label text-sm placeholder:text-on-surface-variant focus:outline-none focus:border-primary transition-colors"
+                 />
+               </div>
+             </div>
+           </div>
+
+           <div>
+             <FieldLabel>Status</FieldLabel>
+             <div className="flex gap-1">
+               {(['active', 'paused', 'cancelled'] as const).map(s => (
+                 <button
+                   key={s}
+                   type="button"
+                   onClick={() => set('status', s)}
+                   className={clsx(
+                     'flex-1 py-3 font-label text-xs uppercase tracking-wider border transition-all',
+                     form.status === s
+                       ? 'bg-primary text-white border-primary'
+                       : 'bg-surface-container-low border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-on-surface'
+                   )}
+                 >
+                   {s}
+                 </button>
+               ))}
+             </div>
+           </div>
 
           <div>
             <FieldLabel>Website (optional)</FieldLabel>

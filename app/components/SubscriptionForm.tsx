@@ -50,33 +50,43 @@ export default function SubscriptionForm({ initial, id }: SubscriptionFormProps)
     return Object.keys(e).length === 0
   }
 
-  async function handleSubmit() {
-    if (!validate()) return
-    setSaving(true)
+   async function handleSubmit() {
+     if (!validate()) return
+     setSaving(true)
 
-    const payload = {
-      name: form.name.trim().toUpperCase(),
-      category: form.category,
-      cost: parseFloat(form.cost),
-      currency: form.currency,
-      billing_cycle: form.billing_cycle as 'monthly' | 'yearly',
-      next_billing_date: form.next_billing_date || null,
-      status: form.status as Subscription['status'],
-      description: form.description || null,
-      website: form.website || null,
-      notes: form.notes || null,
-    }
+     const payload = {
+       name: form.name.trim().toUpperCase(),
+       category: form.category,
+       cost: parseFloat(form.cost),
+       currency: form.currency,
+       billing_cycle: form.billing_cycle as 'weekly' | 'monthly' | 'quarterly' | 'half-yearly' | 'yearly',
+       next_billing_date: form.next_billing_date || null,
+       status: form.status as Subscription['status'],
+       description: form.description || null,
+       website: form.website || null,
+       notes: form.notes || null,
+     }
 
-    if (id) {
-      await supabase.from('subscriptions').update(payload).eq('id', id)
-    } else {
-      await supabase.from('subscriptions').insert(payload)
-    }
+     if (id) {
+       const { error } = await supabase.from('subscriptions').update(payload).eq('id', id)
+       if (error) {
+         alert(`Error saving: ${error.message}`)
+         setSaving(false)
+         return
+       }
+     } else {
+       const { error } = await supabase.from('subscriptions').insert(payload)
+       if (error) {
+         alert(`Error creating: ${error.message}`)
+         setSaving(false)
+         return
+       }
+     }
 
-    setSaving(false)
-    router.push('/subscriptions')
-    router.refresh()
-  }
+     setSaving(false)
+     router.push('/subscriptions')
+     router.refresh()
+   }
 
   const inputClass = (field: string) => clsx(
     'w-full px-4 py-3 bg-surface-container-low border font-label text-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none transition-colors',
@@ -177,22 +187,25 @@ export default function SubscriptionForm({ initial, id }: SubscriptionFormProps)
             </div>
           </div>
 
-          {/* Category + Billing Cycle */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={labelClass}>Category</label>
-              <select value={form.category} onChange={e => set('category', e.target.value)} className={inputClass('category')}>
-                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className={labelClass}>Billing Cycle</label>
-              <select value={form.billing_cycle} onChange={e => set('billing_cycle', e.target.value)} className={inputClass('billing_cycle')}>
-                <option value="monthly">Monthly</option>
-                <option value="yearly">Yearly</option>
-              </select>
-            </div>
-          </div>
+           {/* Category + Billing Cycle */}
+           <div className="grid grid-cols-2 gap-4">
+             <div>
+               <label className={labelClass}>Category</label>
+               <select value={form.category} onChange={e => set('category', e.target.value)} className={inputClass('category')}>
+                 {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+               </select>
+             </div>
+             <div>
+               <label className={labelClass}>Billing Cycle</label>
+               <select value={form.billing_cycle} onChange={e => set('billing_cycle', e.target.value)} className={inputClass('billing_cycle')}>
+                 <option value="weekly">Weekly</option>
+                 <option value="monthly">Monthly</option>
+                 <option value="quarterly">Every 3 Months</option>
+                 <option value="half-yearly">Every 6 Months</option>
+                 <option value="yearly">Yearly</option>
+               </select>
+             </div>
+           </div>
 
           {/* Next billing date + Status */}
           <div className="grid grid-cols-2 gap-4">

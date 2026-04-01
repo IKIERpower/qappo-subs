@@ -72,7 +72,7 @@ export default function EditSubscriptionPage() {
 
     async function handleSubmit() {
         setSaving(true)
-        await supabase.from('subscriptions').update({
+        const { error } = await supabase.from('subscriptions').update({
             name: form.name,
             category: form.category,
             cost: form.cost,
@@ -84,6 +84,10 @@ export default function EditSubscriptionPage() {
             website: form.website ? normalizeUrl(form.website) : null,
         }).eq('id', id)
         setSaving(false)
+        if (error) {
+            alert(`Error: ${error.message}`)
+            return
+        }
         router.push('/subscriptions')
     }
 
@@ -174,17 +178,26 @@ export default function EditSubscriptionPage() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <FieldLabel>Billing Cycle</FieldLabel>
-                            <div className="flex gap-1">
-                                {(['monthly', 'yearly'] as const).map(cycle => (
-                                    <button key={cycle} type="button" onClick={() => set('billing_cycle', cycle)}
-                                            className={clsx('flex-1 py-3 font-label text-xs uppercase tracking-wider border transition-all',
-                                                form.billing_cycle === cycle ? 'bg-primary text-white border-primary' : 'bg-surface-container-low border-outline-variant/30 text-on-surface-variant hover:border-primary')}>
-                                        {cycle}
-                                    </button>
-                                ))}
+                            <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
+                                {(['weekly', 'monthly', 'quarterly', 'half-yearly', 'yearly'] as const).map(cycle => {
+                                    const labels = {
+                                        weekly: 'Weekly',
+                                        monthly: 'Monthly',
+                                        quarterly: 'Every 3 Months',
+                                        'half-yearly': 'Every 6 Months',
+                                        yearly: 'Yearly'
+                                    }
+                                    return (
+                                        <button key={cycle} type="button" onClick={(e) => { e.preventDefault(); set('billing_cycle', cycle); }}
+                                                className={clsx('py-2.5 px-1 font-label text-[9px] uppercase tracking-wider border transition-all text-center',
+                                                    form.billing_cycle === cycle ? 'bg-primary text-white border-primary' : 'bg-surface-container-low border-outline-variant/30 text-on-surface-variant hover:border-primary')}>
+                                            {labels[cycle]}
+                                        </button>
+                                    )
+                                })}
                             </div>
                         </div>
                         <div>

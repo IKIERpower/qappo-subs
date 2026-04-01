@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, Fragment } from 'react'
 import { supabase, Subscription } from '@/app/lib/supabase'
 import { useAuth } from '@/app/lib/AuthContext'
 import AppLayout from '@/app/components/AppLayout'
 import Link from 'next/link'
 import clsx from 'clsx'
+import { autoRenewSubscriptions, getMonthlyEquivalent } from '@/app/lib/billing'
 
 const STATUS_COLORS = {
   active: { bg: 'bg-secondary/10', text: 'text-secondary', dot: 'bg-secondary', label: 'Active' },
@@ -13,10 +14,21 @@ const STATUS_COLORS = {
   cancelled: { bg: 'bg-tertiary/10', text: 'text-tertiary', dot: 'bg-tertiary', label: 'Cancelled' },
 }
 
+const BILLING_LABELS: Record<Subscription['billing_cycle'], string> = {
+  weekly: 'Weekly',
+  monthly: 'Monthly',
+  quarterly: 'Every 3 Months',
+  'half-yearly': 'Every 6 Months',
+  yearly: 'Yearly',
+}
+
 function monthlyEquivalent(sub: Subscription): number {
   if (sub.status !== 'active') return 0
-  if (sub.billing_cycle === 'yearly') return sub.cost / 12
-  return sub.cost
+  return getMonthlyEquivalent(sub.cost, sub.billing_cycle)
+}
+
+function billingCycleLabel(cycle: Subscription['billing_cycle']): string {
+  return BILLING_LABELS[cycle] ?? cycle
 }
 
 export default function SubscriptionsPage() {
@@ -35,16 +47,31 @@ export default function SubscriptionsPage() {
     if (user) load()
   }, [user])
 
-  async function load() {
+  // Refresh data whenever page comes back into focus
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && user) {
+        load()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [user])
+
+  const load = useCallback(async () => {
     setLoading(true)
     const { data } = await supabase
       .from('subscriptions')
       .select('*')
       .eq('user_id', user!.id)
       .order('created_at', { ascending: false })
-    setSubs(data ?? [])
+      
+    const processedSubs = data ? await autoRenewSubscriptions(data) : []
+    
+    setSubs(processedSubs)
     setLoading(false)
-  }
+  }, [user])
 
   function handleSort(col: typeof sortCol) {
     if (sortCol === col) setSortDir(d => (d === 1 ? -1 : 1))
@@ -186,8 +213,8 @@ export default function SubscriptionsPage() {
                         <div className="px-4 pb-4 pt-0 bg-surface-container-low animate-fade-in space-y-3">
                           <div className="grid grid-cols-2 gap-3 pt-3 border-t border-outline-variant/10">
                             <div>
-                              <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-0.5">Monthly</div>
-                              <div className="font-label font-bold tabular-nums text-on-surface">{monthly.toFixed(2)} PLN</div>
+                                  <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-0.5">Monthly Equivalent</div>
+                                  <div className="font-label font-bold tabular-nums text-on-surface">{monthly.toFixed(2)} PLN</div>
                             </div>
                             <div>
                               <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-0.5">Next Renewal</div>
@@ -195,11 +222,11 @@ export default function SubscriptionsPage() {
                             </div>
                             <div>
                               <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-0.5">Annual</div>
-                              <div className="font-label font-bold tabular-nums text-on-surface">{(sub.billing_cycle === 'yearly' ? sub.cost : sub.cost * 12).toFixed(2)} PLN</div>
+                              <div className="font-label font-bold tabular-nums text-on-surface">{(monthly * 12).toFixed(2)} PLN</div>
                             </div>
                             <div>
                               <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-0.5">Cycle</div>
-                              <div className="font-label text-sm text-on-surface uppercase">{sub.billing_cycle}</div>
+                              <div className="font-label text-sm text-on-surface uppercase">{billingCycleLabel(sub.billing_cycle)}</div>
                             </div>
                           </div>
                           {sub.notes && <p className="font-label text-xs text-on-surface-variant">{sub.notes}</p>}
@@ -276,9 +303,8 @@ export default function SubscriptionsPage() {
                     const isExpanded = expandedId === sub.id
                     const monthly = monthlyEquivalent(sub)
                     return (
-                      <>
+                      <Fragment key={sub.id}>
                         <tr
-                          key={sub.id}
                           onClick={() => setExpandedId(isExpanded ? null : sub.id)}
                           className={clsx(
                             'border-b border-outline-variant/10 cursor-pointer transition-all duration-150 group animate-fade-up',
@@ -315,7 +341,7 @@ export default function SubscriptionsPage() {
                             <div className="font-label font-semibold text-sm tabular-nums text-on-surface">
                               {sub.cost.toFixed(2)} <span className="text-on-surface-variant font-normal">{sub.currency}</span>
                             </div>
-                            <div className="font-label text-[10px] text-on-surface-variant uppercase">{sub.billing_cycle}</div>
+                            <div className="font-label text-[10px] text-on-surface-variant uppercase">{billingCycleLabel(sub.billing_cycle)}</div>
                           </td>
                           <td className="px-6 py-4">
                             <span className="font-label text-sm tabular-nums text-on-surface-variant">
@@ -336,7 +362,7 @@ export default function SubscriptionsPage() {
                         </tr>
 
                         {isExpanded && (
-                          <tr key={`${sub.id}-expanded`} className="bg-surface-container-low animate-fade-in">
+                          <tr className="bg-surface-container-low animate-fade-in">
                             <td colSpan={6} className="px-6 pb-5 pt-0">
                               <div className="flex items-start justify-between pt-4 border-t border-outline-variant/10">
                                 <div className="grid grid-cols-3 gap-8">
@@ -346,7 +372,11 @@ export default function SubscriptionsPage() {
                                   </div>
                                   <div>
                                     <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Annual Cost</div>
-                                    <div className="font-label font-bold text-lg tabular-nums text-on-surface">{(sub.billing_cycle === 'yearly' ? sub.cost : sub.cost * 12).toFixed(2)} PLN</div>
+                                    <div className="font-label font-bold text-lg tabular-nums text-on-surface">{(monthly * 12).toFixed(2)} PLN</div>
+                                  </div>
+                                  <div>
+                                    <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Billing Cycle</div>
+                                    <div className="font-label text-sm text-on-surface">{billingCycleLabel(sub.billing_cycle)}</div>
                                   </div>
                                   {sub.notes && (
                                     <div>
@@ -397,7 +427,7 @@ export default function SubscriptionsPage() {
                             </td>
                           </tr>
                         )}
-                      </>
+                      </Fragment>
                     )
                   })}
                 </tbody>
