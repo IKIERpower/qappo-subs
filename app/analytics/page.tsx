@@ -50,7 +50,7 @@ export default function AnalyticsPage() {
         const { data } = await supabase
           .from('subscriptions')
           .select('*')
-          .eq('user_id', user.id)
+          .eq('user_id', user!.id)
         
         if (isMounted) {
           const processedSubs = data ? await autoRenewSubscriptions(data) : []
