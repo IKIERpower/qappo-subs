@@ -47,21 +47,36 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!user) return
+    if (!user || loading === false) return
+    let isMounted = true
+
     async function load() {
-      const { data } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('user_id', user!.id)
-        .order('created_at', { ascending: false })
-      
-      const processedSubs = data ? await autoRenewSubscriptions(data) : []
-      
-      setSubs(processedSubs)
-      setLoading(false)
+      try {
+        const { data } = await supabase
+          .from('subscriptions')
+          .select('*')
+          .eq('user_id', user!.id)
+          .order('created_at', { ascending: false })
+        
+        if (isMounted) {
+          const processedSubs = data ? await autoRenewSubscriptions(data) : []
+          setSubs(processedSubs)
+          setLoading(false)
+        }
+      } catch (error) {
+        console.error('Error loading subscriptions:', error)
+        if (isMounted) {
+          setLoading(false)
+        }
+      }
     }
+    
     load()
-  }, [user])
+    
+    return () => {
+      isMounted = false
+    }
+  }, [user?.id])
 
   const activeSubs = subs.filter(s => s.status === 'active')
   const monthlyBurn = activeSubs.reduce((a, s) => a + monthlyEquivalent(s), 0)

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, Fragment } from 'react'
+import { useEffect, useState, useCallback, Fragment, useRef } from 'react'
 import { supabase, Subscription } from '@/app/lib/supabase'
 import { useAuth } from '@/app/lib/AuthContext'
 import AppLayout from '@/app/components/AppLayout'
@@ -44,7 +44,8 @@ export default function SubscriptionsPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
   useEffect(() => {
-    if (user) load()
+    if (!user || loading === false) return
+    load()
   }, [user])
 
   // Refresh data whenever page comes back into focus
@@ -60,17 +61,26 @@ export default function SubscriptionsPage() {
   }, [user])
 
   const load = useCallback(async () => {
+    let isMounted = true
     setLoading(true)
-    const { data } = await supabase
-      .from('subscriptions')
-      .select('*')
-      .eq('user_id', user!.id)
-      .order('created_at', { ascending: false })
-      
-    const processedSubs = data ? await autoRenewSubscriptions(data) : []
-    
-    setSubs(processedSubs)
-    setLoading(false)
+    try {
+      const { data } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', user!.id)
+        .order('created_at', { ascending: false })
+        
+      if (isMounted) {
+        const processedSubs = data ? await autoRenewSubscriptions(data) : []
+        setSubs(processedSubs)
+        setLoading(false)
+      }
+    } catch (error) {
+      console.error('Error loading subscriptions:', error)
+      if (isMounted) {
+        setLoading(false)
+      }
+    }
   }, [user])
 
   function handleSort(col: typeof sortCol) {

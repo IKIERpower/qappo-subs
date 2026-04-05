@@ -12,13 +12,12 @@ import clsx from 'clsx'
 
 export default function SettingsPage() {
   const router = useRouter()
-  const { user, signOut } = useAuth()
+  const { user, signOut, displayName, setDisplayName: updateDisplayName } = useAuth()
   const { locale, setLocale } = useLocale()
   const t = useTranslation(locale)
 
   // Display name
-  const [displayName, setDisplayName] = useState('')
-  const [displayNameLoaded, setDisplayNameLoaded] = useState(false)
+  const [editingName, setEditingName] = useState('')
   const [savingName, setSavingName] = useState(false)
   const [nameSuccess, setNameSuccess] = useState(false)
   const [nameError, setNameError] = useState('')
@@ -42,41 +41,26 @@ export default function SettingsPage() {
 
   const initials = (displayName || user?.email?.split('@')[0] || 'U').slice(0, 2).toUpperCase()
 
-  // ── Load profile ─────────────────────────────────────────────
+  // ── Sync editingName from context on mount ─────────────────────────────────────────────
   useEffect(() => {
-    if (!user) return
-    async function loadProfile() {
-      const { data } = await supabase
-        .from('profiles')
-        .select('display_name')
-        .eq('id', user!.id)
-        .single()
-      if (data?.display_name) {
-        setDisplayName(data.display_name)
-      } else {
-        setDisplayName(user!.email?.split('@')[0] ?? '')
-      }
-      setDisplayNameLoaded(true)
-    }
-    loadProfile()
-  }, [user])
+    setEditingName(displayName)
+  }, [displayName])
 
   // ── Save display name ────────────────────────────────────────
   async function handleSaveDisplayName() {
-    if (!displayName.trim()) return
+    if (!editingName.trim()) return
     setNameError('')
     setNameSuccess(false)
     setSavingName(true)
 
-    const { error } = await supabase
-      .from('profiles')
-      .upsert({ id: user!.id, display_name: displayName.trim() }, { onConflict: 'id' })
-
-    setSavingName(false)
-    if (error) {
-      setNameError(error.message)
-    } else {
+    try {
+      await updateDisplayName(editingName.trim())
       setNameSuccess(true)
+      setTimeout(() => setNameSuccess(false), 3000)
+    } catch (error) {
+      setNameError(error instanceof Error ? error.message : 'Failed to save display name')
+    } finally {
+      setSavingName(false)
     }
   }
 
@@ -173,7 +157,7 @@ export default function SettingsPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-headline font-semibold text-base text-on-surface truncate">
-                  {displayNameLoaded ? displayName : user?.email?.split('@')[0]}
+                  {displayName || user?.email?.split('@')[0]}
                 </div>
                 <div className="font-label text-sm text-on-surface-variant truncate">{user?.email}</div>
               </div>
@@ -187,14 +171,14 @@ export default function SettingsPage() {
               <div className="flex gap-2">
                 <input
                   type="text"
-                  value={displayName}
-                  onChange={e => { setDisplayName(e.target.value); setNameSuccess(false); setNameError('') }}
+                  value={editingName}
+                  onChange={e => { setEditingName(e.target.value); setNameSuccess(false); setNameError('') }}
                   placeholder={t.displayNamePlaceholder}
                   className={inputClass}
                 />
                 <button
                   onClick={handleSaveDisplayName}
-                  disabled={savingName || !displayName.trim()}
+                  disabled={savingName || !editingName.trim()}
                   className="flex items-center gap-2 bg-primary text-on-primary font-label font-bold text-xs uppercase tracking-widest px-5 py-2.5 hover:opacity-80 transition-opacity disabled:opacity-40 flex-shrink-0"
                 >
                   {savingName && <span className="w-3 h-3 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin" />}

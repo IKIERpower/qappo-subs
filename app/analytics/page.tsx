@@ -41,14 +41,36 @@ export default function AnalyticsPage() {
   ])
 
   useEffect(() => {
-    if (!user) return
-    supabase.from('subscriptions').select('*').eq('user_id', user.id)
-      .then(async ({ data }) => {
-        const processedSubs = data ? await autoRenewSubscriptions(data) : []
-        setSubs(processedSubs)
-        setLoading(false)
-      })
-  }, [user])
+    if (!user || loading === false) return
+    
+    let isMounted = true
+    
+    async function loadSubs() {
+      try {
+        const { data } = await supabase
+          .from('subscriptions')
+          .select('*')
+          .eq('user_id', user.id)
+        
+        if (isMounted) {
+          const processedSubs = data ? await autoRenewSubscriptions(data) : []
+          setSubs(processedSubs)
+          setLoading(false)
+        }
+      } catch (error) {
+        console.error('Error loading subscriptions:', error)
+        if (isMounted) {
+          setLoading(false)
+        }
+      }
+    }
+    
+    loadSubs()
+    
+    return () => {
+      isMounted = false
+    }
+  }, [user?.id])
 
   function toggleScenario(id: string) {
     setScenarios(prev => prev.map(s => s.id === id ? { ...s, checked: !s.checked } : s))

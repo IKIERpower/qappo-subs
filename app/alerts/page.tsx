@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { supabase, Alert } from '@/app/lib/supabase'
 import { useAuth } from '@/app/lib/AuthContext'
 import AppLayout from '@/app/components/AppLayout'
@@ -33,18 +33,24 @@ export default function AlertsPage() {
   const [seedLoading, setSeedLoading] = useState(false)
 
   useEffect(() => {
-    if (user) load()
+    if (!user || loading === false) return
+    load()
   }, [user])
 
-  async function load() {
+  const load = async () => {
     setLoading(true)
-    const { data } = await supabase
-      .from('alerts')
-      .select('*')
-      .eq('user_id', user!.id)
-      .order('created_at')
-    setAlerts(data ?? [])
-    setLoading(false)
+    try {
+      const { data } = await supabase
+        .from('alerts')
+        .select('*')
+        .eq('user_id', user!.id)
+        .order('created_at')
+      setAlerts(data ?? [])
+      setLoading(false)
+    } catch (error) {
+      console.error('Error loading alerts:', error)
+      setLoading(false)
+    }
   }
 
   async function seedAlerts() {
