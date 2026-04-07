@@ -3,6 +3,8 @@ import './globals.css'
 import { AuthProvider } from '@/app/lib/AuthContext'
 import { ThemeProvider } from '@/app/lib/ThemeContext'
 import { LocaleProvider } from '@/app/lib/LocaleContext'
+import { inter, spaceGrotesk, jetbrainsMono } from '@/app/lib/fonts';
+import 'material-symbols/outlined.css';
 
 export const metadata: Metadata = {
     title: {
@@ -41,7 +43,12 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="pl"
+          className={`
+        ${inter.variable}
+        ${spaceGrotesk.variable}
+        ${jetbrainsMono.variable}
+      `}>
       <body>
         <LocaleProvider>
           <ThemeProvider>
