@@ -99,7 +99,7 @@ export default function LoginPage() {
       </div>
 
        {/* Right panel — form */}
-       <div className="flex-1 flex flex-col items-center justify-start lg:justify-center p-8 pt- lg:pt-8 w-full">
+       <div className="flex-1 flex flex-col items-center justify-start lg:justify-center p-8 pt-32 lg:pt-8 w-full">
          <div className="w-full max-w-[400px] animate-fade-up">
 
            <div className="w-full">

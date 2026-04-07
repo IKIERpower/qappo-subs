@@ -147,7 +147,7 @@ export default function RegisterPage() {
                 </div>
 
                 {/* Right panel — form */}
-                <div className="flex-1 flex flex-col items-center justify-start lg:justify-center p-8 pt-40 lg:pt-8 w-full">
+                <div className="flex-1 flex flex-col items-center justify-start lg:justify-center p-8 pt-32 lg:pt-8 w-full">
                     <div className="w-full max-w-[400px] animate-fade-up">
                         <div className="mb-8">
                             <h1 className="font-headline font-bold text-2xl tracking-tighter text-on-surface">Create account</h1>
