@@ -39,7 +39,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Initialize auth session only once with timeout
     useEffect(() => {
         let isMounted = true
-        let timeoutId: NodeJS.Timeout
         
         const initializeAuth = async () => {
             try {
@@ -81,7 +80,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return () => {
             isMounted = false
             subscription.unsubscribe()
-            if (timeoutId) clearTimeout(timeoutId)
         }
     }, [])
 
