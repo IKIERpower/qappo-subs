@@ -145,9 +145,9 @@ export default function SettingsPage() {
         return
       }
 
-      await signOut()
-                  {displayName || user?.email?.split('@')[0]}
-    } catch (err) {
+       await signOut()
+       router.replace('/auth/login')
+     } catch (err) {
       setDeleteError('Something went wrong. Please try again.')
       setDeleting(false)
     }
@@ -156,17 +156,17 @@ export default function SettingsPage() {
   const inputClass = "w-full px-4 py-3 bg-surface-container-low border border-outline-variant/30 text-on-surface font-label text-sm placeholder:text-on-surface-variant focus:outline-none focus:border-primary transition-colors"
   const labelClass = "font-label text-[10px] uppercase tracking-widest text-on-surface-variant block mb-2"
 
-  return (
-    <AppLayout>
-      <div className="max-w-2xl mx-auto px-4 md:px-8 py-6 md:py-10 space-y-5 animate-fade-up">
+   return (
+     <AppLayout>
+       <div className="max-w-2xl mx-auto px-4 md:px-8 py-6 md:py-10 space-y-5 animate-fade-up">
 
-                  value={editingName}
-                  onChange={e => { setEditingName(e.target.value); setNameSuccess(false); setNameError('') }}
-          <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">{t.configuration}</div>
-          <h1 className="font-headline font-bold text-2xl tracking-tighter text-on-surface">{t.accountSettings}</h1>
-        </div>
+        {/* Header */}
+         <div>
+           <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">{t.configuration}</div>
+           <h1 className="font-headline font-bold text-2xl tracking-tighter text-on-surface">{t.accountSettings}</h1>
+         </div>
 
-        {/* ── Profile + Display Name ── */}
+         {/* ── Profile + Display Name ── */}
                   disabled={savingName || !editingName.trim()}
           <div className="px-6 py-4 border-b border-outline-variant/15">
             <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">{t.profile}</div>
