@@ -1,12 +1,3 @@
-    const { data } = await supabase
-      .from('alerts')
-import { useEffect, useState, useRef } from 'react'
-      .eq('user_id', user!.id)
-      .order('created_at')
-    setAlerts(data ?? [])
-    setLoading(false)
-  async function load() {
-    if (user) load()
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -33,25 +24,15 @@ const DEFAULT_ALERTS = [
 ]
 
 export default function AlertsPage() {
-    if (!user || loading === false) return
-    load()
+  const { user } = useAuth()
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [loading, setLoading] = useState(true)
-  const load = async () => {
   const [editingId, setEditingId] = useState<string | null>(null)
-    try {
-      const { data } = await supabase
-        .from('alerts')
-        .select('*')
-        .eq('user_id', user!.id)
-        .order('created_at')
-      setAlerts(data ?? [])
-      setLoading(false)
-    } catch (error) {
-      console.error('Error loading alerts:', error)
-      setLoading(false)
-    }
-  async function load() {
+  const [editValue, setEditValue] = useState('')
+  const [saving, setSaving] = useState<string | null>(null)
+  const [seedLoading, setSeedLoading] = useState(false)
+
+  const load = async () => {
     setLoading(true)
     const { data } = await supabase
       .from('alerts')
@@ -61,6 +42,10 @@ export default function AlertsPage() {
     setAlerts(data ?? [])
     setLoading(false)
   }
+
+  useEffect(() => {
+    if (user) load()
+  }, [user])
 
   async function seedAlerts() {
     setSeedLoading(true)

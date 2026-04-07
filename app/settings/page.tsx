@@ -1,34 +1,3 @@
-                  disabled={savingName || !displayName.trim()}
-                  value={displayName}
-                  onChange={e => { setDisplayName(e.target.value); setNameSuccess(false); setNameError('') }}
-                  {displayNameLoaded ? displayName : user?.email?.split('@')[0]}
-    const { error } = await supabase
-      .from('profiles')
-      .upsert({ id: user!.id, display_name: displayName.trim() }, { onConflict: 'id' })
-
-    setSavingName(false)
-    if (error) {
-      setNameError(error.message)
-    } else {
-    if (!displayName.trim()) return
-    if (!user) return
-  const { user, signOut, displayName, setDisplayName: updateDisplayName } = useAuth()
-      const { data } = await supabase
-        .from('profiles')
-        .select('display_name')
-        .eq('id', user!.id)
-  const [editingName, setEditingName] = useState('')
-        setDisplayName(data.display_name)
-      } else {
-        setDisplayName(user!.email?.split('@')[0] ?? '')
-      }
-      setDisplayNameLoaded(true)
-    }
-    loadProfile()
-  }, [user])
-  // ── Load profile ─────────────────────────────────────────────
-  const [displayName, setDisplayName] = useState('')
-  const [displayNameLoaded, setDisplayNameLoaded] = useState(false)
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -41,26 +10,45 @@ import AppLayout from '@/app/components/AppLayout'
 import Link from 'next/link'
 import clsx from 'clsx'
 
-  // ── Sync editingName from context on mount ─────────────────────────────────────────────
+export default function SettingsPage() {
   const router = useRouter()
-    setEditingName(displayName)
-  }, [displayName])
+  const { user, signOut } = useAuth()
+  const { locale, setLocale } = useLocale()
+  const t = useTranslation(locale)
 
-  // Password (reset via email)
+  // ── Profile / Display Name
+  const [displayName, setDisplayName] = useState('')
+  const [displayNameLoaded, setDisplayNameLoaded] = useState(false)
+  const [savingName, setSavingName] = useState(false)
+  const [nameError, setNameError] = useState('')
+  const [nameSuccess, setNameSuccess] = useState(false)
+
+  // ── Email
+  const [newEmail, setNewEmail] = useState('')
+  const [savingEmail, setSavingEmail] = useState(false)
+  const [emailError, setEmailError] = useState('')
+  const [emailSuccess, setEmailSuccess] = useState(false)
+
+  // ── Password
   const [passwordError, setPasswordError] = useState('')
-    if (!editingName.trim()) return
+  const [passwordSuccess, setPasswordSuccess] = useState(false)
   const [savingPassword, setSavingPassword] = useState(false)
 
-  // Delete
+  // ── Delete
   const [deleteConfirm, setDeleteConfirm] = useState('')
-    try {
-      await updateDisplayName(editingName.trim())
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
+
+  // Compute initials
+  const initials = displayNameLoaded 
+    ? displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    : user?.email?.charAt(0).toUpperCase() ?? '?'
+
+  // ── Load profile ─────────────────────────────────────────────
+  useEffect(() => {
     if (!user) return
-      setTimeout(() => setNameSuccess(false), 3000)
-    } catch (error) {
-      setNameError(error instanceof Error ? error.message : 'Failed to save display name')
-    } finally {
-      setSavingName(false)
+
     async function loadProfile() {
       const { data } = await supabase
         .from('profiles')
@@ -93,6 +81,7 @@ import clsx from 'clsx'
       setNameError(error.message)
     } else {
       setNameSuccess(true)
+      setTimeout(() => setNameSuccess(false), 3000)
     }
   }
 
