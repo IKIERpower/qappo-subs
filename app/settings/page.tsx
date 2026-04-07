@@ -167,10 +167,10 @@ export default function SettingsPage() {
          </div>
 
          {/* ── Profile + Display Name ── */}
-                  disabled={savingName || !editingName.trim()}
-          <div className="px-6 py-4 border-b border-outline-variant/15">
-            <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">{t.profile}</div>
-          </div>
+         <section className="bg-surface-container-lowest border border-outline-variant/15">
+           <div className="px-6 py-4 border-b border-outline-variant/15">
+             <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">{t.profile}</div>
+           </div>
           <div className="px-6 py-5 space-y-5">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-primary flex items-center justify-center font-label font-bold text-base text-on-primary flex-shrink-0">
