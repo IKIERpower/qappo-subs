@@ -1,3 +1,34 @@
+                  disabled={savingName || !displayName.trim()}
+                  value={displayName}
+                  onChange={e => { setDisplayName(e.target.value); setNameSuccess(false); setNameError('') }}
+                  {displayNameLoaded ? displayName : user?.email?.split('@')[0]}
+    const { error } = await supabase
+      .from('profiles')
+      .upsert({ id: user!.id, display_name: displayName.trim() }, { onConflict: 'id' })
+
+    setSavingName(false)
+    if (error) {
+      setNameError(error.message)
+    } else {
+    if (!displayName.trim()) return
+    if (!user) return
+  const { user, signOut, displayName, setDisplayName: updateDisplayName } = useAuth()
+      const { data } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .eq('id', user!.id)
+  const [editingName, setEditingName] = useState('')
+        setDisplayName(data.display_name)
+      } else {
+        setDisplayName(user!.email?.split('@')[0] ?? '')
+      }
+      setDisplayNameLoaded(true)
+    }
+    loadProfile()
+  }, [user])
+  // ── Load profile ─────────────────────────────────────────────
+  const [displayName, setDisplayName] = useState('')
+  const [displayNameLoaded, setDisplayNameLoaded] = useState(false)
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -10,57 +41,58 @@ import AppLayout from '@/app/components/AppLayout'
 import Link from 'next/link'
 import clsx from 'clsx'
 
-export default function SettingsPage() {
+  // ── Sync editingName from context on mount ─────────────────────────────────────────────
   const router = useRouter()
-  const { user, signOut, displayName, setDisplayName: updateDisplayName } = useAuth()
-  const { locale, setLocale } = useLocale()
-  const t = useTranslation(locale)
-
-  // Display name
-  const [editingName, setEditingName] = useState('')
-  const [savingName, setSavingName] = useState(false)
-  const [nameSuccess, setNameSuccess] = useState(false)
-  const [nameError, setNameError] = useState('')
-
-  // Email
-  const [newEmail, setNewEmail] = useState('')
-  const [emailError, setEmailError] = useState('')
-  const [emailSuccess, setEmailSuccess] = useState(false)
-  const [savingEmail, setSavingEmail] = useState(false)
+    setEditingName(displayName)
+  }, [displayName])
 
   // Password (reset via email)
   const [passwordError, setPasswordError] = useState('')
-  const [passwordSuccess, setPasswordSuccess] = useState(false)
+    if (!editingName.trim()) return
   const [savingPassword, setSavingPassword] = useState(false)
 
   // Delete
   const [deleteConfirm, setDeleteConfirm] = useState('')
-  const [deleting, setDeleting] = useState(false)
-  const [deleteError, setDeleteError] = useState('')
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
-
-  const initials = (displayName || user?.email?.split('@')[0] || 'U').slice(0, 2).toUpperCase()
-
-  // ── Sync editingName from context on mount ─────────────────────────────────────────────
-  useEffect(() => {
-    setEditingName(displayName)
-  }, [displayName])
-
-  // ── Save display name ────────────────────────────────────────
-  async function handleSaveDisplayName() {
-    if (!editingName.trim()) return
-    setNameError('')
-    setNameSuccess(false)
-    setSavingName(true)
-
     try {
       await updateDisplayName(editingName.trim())
-      setNameSuccess(true)
+    if (!user) return
       setTimeout(() => setNameSuccess(false), 3000)
     } catch (error) {
       setNameError(error instanceof Error ? error.message : 'Failed to save display name')
     } finally {
       setSavingName(false)
+    async function loadProfile() {
+      const { data } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .eq('id', user!.id)
+        .single()
+      if (data?.display_name) {
+        setDisplayName(data.display_name)
+      } else {
+        setDisplayName(user!.email?.split('@')[0] ?? '')
+      }
+      setDisplayNameLoaded(true)
+    }
+    loadProfile()
+  }, [user])
+
+  // ── Save display name ────────────────────────────────────────
+  async function handleSaveDisplayName() {
+    if (!displayName.trim()) return
+    setNameError('')
+    setNameSuccess(false)
+    setSavingName(true)
+
+    const { error } = await supabase
+      .from('profiles')
+      .upsert({ id: user!.id, display_name: displayName.trim() }, { onConflict: 'id' })
+
+    setSavingName(false)
+    if (error) {
+      setNameError(error.message)
+    } else {
+      setNameSuccess(true)
     }
   }
 
@@ -125,7 +157,7 @@ export default function SettingsPage() {
       }
 
       await signOut()
-      router.replace('/auth/login')
+                  {displayName || user?.email?.split('@')[0]}
     } catch (err) {
       setDeleteError('Something went wrong. Please try again.')
       setDeleting(false)
@@ -139,14 +171,14 @@ export default function SettingsPage() {
     <AppLayout>
       <div className="max-w-2xl mx-auto px-4 md:px-8 py-6 md:py-10 space-y-5 animate-fade-up">
 
-        {/* Header */}
-        <div>
+                  value={editingName}
+                  onChange={e => { setEditingName(e.target.value); setNameSuccess(false); setNameError('') }}
           <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">{t.configuration}</div>
           <h1 className="font-headline font-bold text-2xl tracking-tighter text-on-surface">{t.accountSettings}</h1>
         </div>
 
         {/* ── Profile + Display Name ── */}
-        <section className="bg-surface-container-lowest border border-outline-variant/15">
+                  disabled={savingName || !editingName.trim()}
           <div className="px-6 py-4 border-b border-outline-variant/15">
             <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">{t.profile}</div>
           </div>
@@ -157,7 +189,7 @@ export default function SettingsPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-headline font-semibold text-base text-on-surface truncate">
-                  {displayName || user?.email?.split('@')[0]}
+                  {displayNameLoaded ? displayName : user?.email?.split('@')[0]}
                 </div>
                 <div className="font-label text-sm text-on-surface-variant truncate">{user?.email}</div>
               </div>
@@ -171,14 +203,14 @@ export default function SettingsPage() {
               <div className="flex gap-2">
                 <input
                   type="text"
-                  value={editingName}
-                  onChange={e => { setEditingName(e.target.value); setNameSuccess(false); setNameError('') }}
+                  value={displayName}
+                  onChange={e => { setDisplayName(e.target.value); setNameSuccess(false); setNameError('') }}
                   placeholder={t.displayNamePlaceholder}
                   className={inputClass}
                 />
                 <button
                   onClick={handleSaveDisplayName}
-                  disabled={savingName || !editingName.trim()}
+                  disabled={savingName || !displayName.trim()}
                   className="flex items-center gap-2 bg-primary text-on-primary font-label font-bold text-xs uppercase tracking-widest px-5 py-2.5 hover:opacity-80 transition-opacity disabled:opacity-40 flex-shrink-0"
                 >
                   {savingName && <span className="w-3 h-3 border-2 border-on-primary/30 border-t-on-primary rounded-full animate-spin" />}

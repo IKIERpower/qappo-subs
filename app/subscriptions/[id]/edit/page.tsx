@@ -1,4 +1,4 @@
-// app/subscriptions/[id]/edit/page.tsx
+// app/subscriptions/[id]/edit/route.ts
 
 import EditSubscriptionClient from './EditSubscriptionClient'
 

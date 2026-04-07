@@ -23,7 +23,6 @@ const AuthContext = createContext<AuthContextType>({
     signOut: async () => {},
 })
 
-// Paths that don't require authentication
 const PUBLIC_PATHS = ['/', '/auth/login', '/auth/register', '/auth/reset', '/auth/callback', '/auth/update-password']
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -36,20 +35,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const router = useRouter()
     const pathname = usePathname()
 
-    // Initialize auth session only once with timeout
     useEffect(() => {
         let isMounted = true
         
         const initializeAuth = async () => {
             try {
-                // Set a timeout to avoid hanging if Supabase is slow (15 seconds max)
-                const timeout = new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error('Session fetch timeout')), 15000)
-                )
-                
-                const sessionPromise = supabase.auth.getSession()
-                const { data: { session } } = await Promise.race([sessionPromise, timeout]) as any
-                
+                const { data: { session } } = await supabase.auth.getSession()
                 if (isMounted) {
                     setSession(session)
                     setUser(session?.user ?? null)
@@ -58,8 +49,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 }
             } catch (error) {
                 if (isMounted) {
-                    // If timeout or error, still mark as initialized and not loading
-                    // User will need to login which will trigger auth check
                     setLoading(false)
                     setInitialized(true)
                 }
@@ -68,9 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         initializeAuth()
 
-        const {
-            data: { subscription },
-        } = supabase.auth.onAuthStateChange((_event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             if (isMounted) {
                 setSession(session)
                 setUser(session?.user ?? null)
@@ -83,7 +70,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     }, [])
 
-    // Load display name only once per user (on login) - cached
     useEffect(() => {
         if (!user || displayNameLoadedRef.current) return
         
@@ -110,7 +96,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return () => { isMounted = false }
     }, [user?.id])
 
-    // Handle routing when auth state changes
     useEffect(() => {
         if (!initialized || loading) return
         
@@ -139,7 +124,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         router.replace('/')
     }
 
-    // Memoize context value to prevent unnecessary re-renders
     const value = useMemo(
         () => ({ user, session, loading, displayName, setDisplayName, signOut }),
         [user, session, loading, displayName]

@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/app/lib/AuthContext'
 import { useLocale } from '@/app/lib/LocaleContext'
@@ -14,12 +13,8 @@ export default function Navbar() {
   const { locale, setLocale } = useLocale()
   const { isDark, toggleTheme } = useTheme()
   const t = useTranslation(locale)
-  const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   const isAuthPage = pathname?.startsWith('/auth')
 
@@ -48,28 +43,24 @@ export default function Navbar() {
         {/* Right side controls */}
         <div className="flex items-center gap-2">
           {/* Language toggle */}
-          {mounted && (
-            <button
-              onClick={() => setLocale(locale === 'en' ? 'pl' : 'en')}
-              className="h-9 px-3 font-label text-xs font-semibold tracking-wide uppercase text-on-surface-variant hover:text-on-surface bg-surface-container-low/50 backdrop-blur-sm hover:bg-surface-container border border-outline-variant/20 transition-colors"
-              title={locale === 'en' ? 'Polski' : 'English'}
-            >
-              {locale === 'en' ? 'PL' : 'EN'}
-            </button>
-          )}
+          <button
+            onClick={() => setLocale(locale === 'en' ? 'pl' : 'en')}
+            className="h-9 px-3 font-label text-xs font-semibold tracking-wide uppercase text-on-surface-variant hover:text-on-surface bg-surface-container-low/50 backdrop-blur-sm hover:bg-surface-container border border-outline-variant/20 transition-colors"
+            title={locale === 'en' ? 'Polski' : 'English'}
+          >
+            {locale === 'en' ? 'PL' : 'EN'}
+          </button>
 
           {/* Theme toggle */}
-          {mounted && (
-            <button
-              onClick={toggleTheme}
-              className="h-9 w-9 flex items-center justify-center text-on-surface-variant hover:text-on-surface bg-surface-container-low/50 backdrop-blur-sm hover:bg-surface-container border border-outline-variant/20 transition-colors"
-              title={isDark ? t.lightMode : t.darkMode}
-            >
-              <span className="material-symbols-outlined text-[18px]">
-                {isDark ? 'light_mode' : 'dark_mode'}
-              </span>
-            </button>
-          )}
+          <button
+            onClick={toggleTheme}
+            className="h-9 w-9 flex items-center justify-center text-on-surface-variant hover:text-on-surface bg-surface-container-low/50 backdrop-blur-sm hover:bg-surface-container border border-outline-variant/20 transition-colors"
+            title={isDark ? t.lightMode : t.darkMode}
+          >
+            <span className="material-symbols-outlined text-[18px]">
+              {isDark ? 'light_mode' : 'dark_mode'}
+            </span>
+          </button>
 
           {/* Divider */}
           <div className="w-px h-6 bg-outline-variant/25 mx-1 hidden sm:block" />

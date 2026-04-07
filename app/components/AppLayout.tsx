@@ -26,13 +26,27 @@ const pageMap: Record<string, { icon: string; labelKey: string }> = {
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const { user, loading, displayName, signOut } = useAuth()
+  const { user, loading, signOut } = useAuth()
   const { isDark, toggleTheme } = useTheme()
   const { locale } = useLocale()
   const t = useTranslation(locale)
   const [signingOut, setSigningOut] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)   // desktop dropdown
   const [mobileUserMenuOpen, setMobileUserMenuOpen] = useState(false) // mobile dropdown
+  const [displayName, setDisplayName] = useState('')
+
+  // Load display name from profiles
+  useEffect(() => {
+    if (!user) return
+    supabase
+      .from('profiles')
+      .select('display_name')
+      .eq('id', user.id)
+      .single()
+      .then(({ data }) => {
+        if (data?.display_name) setDisplayName(data.display_name)
+      })
+  }, [user])
 
   const initials = (displayName || (user?.email?.split('@')[0] ?? 'U')).slice(0, 2).toUpperCase()
   const sidebarName = displayName || user?.email?.split('@')[0] || '—'
