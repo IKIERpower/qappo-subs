@@ -36,12 +36,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const router = useRouter()
     const pathname = usePathname()
 
-    // Initialize auth session only once
+    // Initialize auth session only once with timeout
     useEffect(() => {
         let isMounted = true
+        let timeoutId: NodeJS.Timeout
+        
         const initializeAuth = async () => {
             try {
-                const { data: { session } } = await supabase.auth.getSession()
+                // Set a timeout to avoid hanging if Supabase is slow (15 seconds max)
+                const timeout = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('Session fetch timeout')), 15000)
+                )
+                
+                const sessionPromise = supabase.auth.getSession()
+                const { data: { session } } = await Promise.race([sessionPromise, timeout]) as any
+                
                 if (isMounted) {
                     setSession(session)
                     setUser(session?.user ?? null)
@@ -50,6 +59,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 }
             } catch (error) {
                 if (isMounted) {
+                    // If timeout or error, still mark as initialized and not loading
+                    // User will need to login which will trigger auth check
                     setLoading(false)
                     setInitialized(true)
                 }
@@ -70,6 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return () => {
             isMounted = false
             subscription.unsubscribe()
+            if (timeoutId) clearTimeout(timeoutId)
         }
     }, [])
 

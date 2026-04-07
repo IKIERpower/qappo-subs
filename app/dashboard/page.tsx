@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import { supabase, Subscription } from '@/app/lib/supabase'
 import { useAuth } from '@/app/lib/AuthContext'
 import AppLayout from '@/app/components/AppLayout'
@@ -82,52 +82,55 @@ export default function DashboardPage() {
   const monthlyBurn = activeSubs.reduce((a, s) => a + monthlyEquivalent(s), 0)
   const annualProjection = monthlyBurn * 12
 
-  // 7-day renewals
-  const today = new Date()
-  const in7 = addDays(today, 7)
-  const upcoming = subs
-    .filter(s => s.status === 'active' && s.next_billing_date)
-    .map(s => ({ ...s, d: parseISO(s.next_billing_date!) }))
-    .filter(s => isWithinInterval(s.d, { start: today, end: in7 }))
-    .sort((a, b) => a.d.getTime() - b.d.getTime())
+   // 7-day renewals (memoized)
+   const upcoming = useMemo(() => {
+     const today = new Date()
+     const in7 = addDays(today, 7)
+     return subs
+       .filter(s => s.status === 'active' && s.next_billing_date)
+       .map(s => ({ ...s, d: parseISO(s.next_billing_date!) }))
+       .filter(s => isWithinInterval(s.d, { start: today, end: in7 }))
+       .sort((a, b) => a.d.getTime() - b.d.getTime())
+   }, [subs])
 
-  // Category breakdown
-  const catTotals: Record<string, number> = {}
-  activeSubs.forEach(s => {
-    catTotals[s.category] = (catTotals[s.category] ?? 0) + monthlyEquivalent(s)
-  })
-  const catEntries = Object.entries(catTotals).sort((a, b) => b[1] - a[1])
-  const catTotal = catEntries.reduce((a, [, v]) => a + v, 0)
+   // Category breakdown (memoized)
+   const { catEntries, catTotal } = useMemo(() => {
+     const catTotals: Record<string, number> = {}
+     activeSubs.forEach(s => {
+       catTotals[s.category] = (catTotals[s.category] ?? 0) + monthlyEquivalent(s)
+     })
+     const entries = Object.entries(catTotals).sort((a, b) => b[1] - a[1])
+     const total = entries.reduce((a, [, v]) => a + v, 0)
+     return { catEntries: entries, catTotal: total }
+   }, [activeSubs])
 
-   // Calculate realistic 12-month history based on subscription creation dates
-   const calculateMonthlySpend = () => {
-     const data = []
-     const now = new Date()
-     
-     // Generate last 12 months
-     for (let i = 11; i >= 0; i--) {
-       const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1)
-       const monthKey = format(monthDate, 'MMM').toUpperCase()
-       
-       // Sum all subscriptions that were created by this month
-       const spend = subs
-         .filter(s => s.status !== 'cancelled')
-         .filter(sub => {
-           const createdDate = parseISO(sub.created_at)
-           return createdDate <= monthDate
-         })
-         .reduce((sum, sub) => {
-           if (sub.status === 'paused') return sum
-           return sum + monthlyEquivalent(sub)
-         }, 0)
-       
-       data.push({ month: monthKey, value: spend })
-     }
-     
-     return data
-   }
-   
-   const sparkData = calculateMonthlySpend()
+   // Calculate realistic 12-month history based on subscription creation dates (memoized)
+    const sparkData = useMemo(() => {
+      const data = []
+      const now = new Date()
+      
+      // Generate last 12 months
+      for (let i = 11; i >= 0; i--) {
+        const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1)
+        const monthKey = format(monthDate, 'MMM').toUpperCase()
+        
+        // Sum all subscriptions that were created by this month
+        const spend = subs
+          .filter(s => s.status !== 'cancelled')
+          .filter(sub => {
+            const createdDate = parseISO(sub.created_at)
+            return createdDate <= monthDate
+          })
+          .reduce((sum, sub) => {
+            if (sub.status === 'paused') return sum
+            return sum + monthlyEquivalent(sub)
+          }, 0)
+        
+        data.push({ month: monthKey, value: spend })
+      }
+      
+      return data
+    }, [subs])
 
   if (loading) {
     return (
@@ -282,10 +285,11 @@ export default function DashboardPage() {
                <span className="material-symbols-outlined text-[32px] text-on-surface-variant mb-3 block">event_available</span>
                <p className="font-label text-sm text-on-surface-variant">{t.noUpcomingRenewals}</p>
              </div>
-           ) : (
-            <div className="bg-surface-container-low border border-outline-variant/15 divide-y divide-outline-variant/10">
-              {upcoming.map((sub, i) => {
-                const days = differenceInDays(sub.d, today)
+            ) : (
+             <div className="bg-surface-container-low border border-outline-variant/15 divide-y divide-outline-variant/10">
+               {upcoming.map((sub, i) => {
+                 const today = new Date()
+                 const days = differenceInDays(sub.d, today)
                 const urgent = days <= 3
                 return (
                   <Link
