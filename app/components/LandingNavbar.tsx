@@ -12,16 +12,16 @@ export default function LandingNavbar() {
 
   return (
     <header className="sticky top-0 z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant/15">
-      <nav className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-        <Link href="/" className="font-headline font-bold text-lg text-on-surface hover:opacity-80 transition-opacity">
+      <nav className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+        <Link href="/" className="font-headline font-bold text-sm sm:text-lg text-on-surface hover:opacity-80 transition-opacity">
           SubManager
         </Link>
         
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1 sm:gap-3">
           {/* Language toggle */}
           <button
             onClick={() => setLocale(locale === 'en' ? 'pl' : 'en')}
-            className="h-9 px-3 font-label text-xs font-semibold tracking-wide uppercase text-on-surface-variant hover:text-on-surface bg-surface-container-low/50 backdrop-blur-sm hover:bg-surface-container border border-outline-variant/20 transition-colors"
+            className="h-9 px-2 sm:px-3 font-label text-[10px] sm:text-xs font-semibold tracking-wide uppercase text-on-surface-variant hover:text-on-surface bg-surface-container-low/50 backdrop-blur-sm hover:bg-surface-container border border-outline-variant/20 transition-colors"
             title={locale === 'en' ? 'Polski' : 'English'}
           >
             {locale === 'en' ? 'PL' : 'EN'}
@@ -39,19 +39,24 @@ export default function LandingNavbar() {
           </button>
 
           {/* Divider */}
-          <div className="w-px h-6 bg-outline-variant/25 mx-1" />
+          <div className="w-px h-6 bg-outline-variant/25 mx-1 hidden sm:block" />
 
+          {/* Login button - hidden on very small screens */}
           <Link
             href="/auth/login"
-            className="h-9 px-4 flex items-center font-label text-xs font-semibold tracking-wide uppercase text-on-surface-variant hover:text-on-surface bg-surface-container-low hover:bg-surface-container border border-outline-variant/20 transition-colors"
+            className="h-9 px-2.5 sm:px-4 hidden xs:flex items-center font-label text-[10px] sm:text-xs font-semibold tracking-wide uppercase text-on-surface-variant hover:text-on-surface bg-surface-container-low hover:bg-surface-container border border-outline-variant/20 transition-colors"
           >
-            {t.landingLogin}
+            <span className="hidden sm:inline">{t.landingLogin}</span>
+            <span className="sm:hidden">Log In</span>
           </Link>
+
+          {/* Register button */}
           <Link
             href="/auth/register"
-            className="h-9 px-4 flex items-center justify-center font-label text-xs font-semibold tracking-wide uppercase text-on-primary bg-primary hover:bg-primary/85 transition-colors"
+            className="h-9 px-2.5 sm:px-4 flex items-center justify-center font-label text-[10px] sm:text-xs font-semibold tracking-wide uppercase text-on-primary bg-primary hover:bg-primary/85 transition-colors"
           >
-            {t.landingGetStarted}
+            <span className="hidden sm:inline">{t.landingGetStarted}</span>
+            <span className="sm:hidden">Sign Up</span>
           </Link>
         </div>
       </nav>

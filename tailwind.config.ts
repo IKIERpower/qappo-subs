@@ -9,6 +9,9 @@ const config: Config = {
   darkMode: 'class',
   theme: {
     extend: {
+      screens: {
+        xs: '360px',
+      },
       colors: {
         primary: 'rgb(var(--color-primary-rgb) / <alpha-value>)',
         'on-primary': 'rgb(var(--color-on-primary-rgb) / <alpha-value>)',

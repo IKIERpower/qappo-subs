@@ -124,7 +124,7 @@ export default function RegisterPage() {
             <Navbar />
             <div className="min-h-screen bg-surface flex">
                 {/* Left panel — branding (Matches Login Page) */}
-                <div className="hidden lg:flex w-[480px] min-w-[480px] bg-black flex-col justify-between p-12">
+                <div className="hidden lg:flex w-[480px] min-w-[480px] bg-black flex-col justify-between p-12 pt-0">
                     <Link href="/" className="group block">
                         <div className="font-headline font-bold text-xl tracking-tighter text-white group-hover:text-white/80 transition-colors">SubManager</div>
                         <div className="font-label text-[10px] uppercase tracking-widest text-white/40 mt-0.5 group-hover:text-white/30 transition-colors">Sub Manager by Qappo</div>
@@ -166,14 +166,9 @@ export default function RegisterPage() {
                 </div>
 
                 {/* Right panel — form */}
-                <div className="flex-1 flex flex-col items-center justify-center p-8">
+                <div className="flex-1 flex flex-col items-center justify-center p-8 pt-20 lg:pt-8">
                     <div className="w-full max-w-[400px] animate-fade-up flex-1 flex items-center">
                         <div className="w-full">
-                            <div className="lg:hidden mb-10">
-                                <Link href="/" className="font-headline font-bold text-xl tracking-tighter text-on-surface">
-                                    SubManager
-                                </Link>
-                            </div>
 
                             <div className="mb-8">
                                 <h1 className="font-headline font-bold text-2xl tracking-tighter text-on-surface">

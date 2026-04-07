@@ -22,30 +22,21 @@ export default function Navbar() {
     <header className={clsx(
       "z-50 w-full transition-all",
       isAuthPage 
-        ? "absolute top-0 left-0 bg-transparent border-none" 
+        ? "sticky top-0 bg-surface/80 backdrop-blur-md border-b border-outline-variant/15" 
         : "sticky top-0 bg-surface/80 backdrop-blur-md border-b border-outline-variant/15"
     )}>
       <div className={clsx(
-        "mx-auto px-6 h-16 flex items-center justify-between",
+        "mx-auto px-4 sm:px-6 h-16 flex items-center justify-between",
         isAuthPage ? "max-w-none" : "max-w-6xl"
       )}>
-        {/* Logo - hidden on auth pages as they have their own logo */}
-        {!isAuthPage ? (
-          <Link href="/" className="flex items-center gap-2">
-            <span className="font-headline font-bold text-lg tracking-tighter text-on-surface">
-              SubManager
-            </span>
-          </Link>
-        ) : (
-          <div /> // Empty space for auth pages
-        )}
+        {/* Logo */}
 
         {/* Right side controls */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           {/* Language toggle */}
           <button
             onClick={() => setLocale(locale === 'en' ? 'pl' : 'en')}
-            className="h-9 px-3 font-label text-xs font-semibold tracking-wide uppercase text-on-surface-variant hover:text-on-surface bg-surface-container-low/50 backdrop-blur-sm hover:bg-surface-container border border-outline-variant/20 transition-colors"
+            className="h-9 px-2 sm:px-3 font-label text-[10px] sm:text-xs font-semibold tracking-wide uppercase text-on-surface-variant hover:text-on-surface bg-surface-container-low/50 backdrop-blur-sm hover:bg-surface-container border border-outline-variant/20 transition-colors"
             title={locale === 'en' ? 'Polski' : 'English'}
           >
             {locale === 'en' ? 'PL' : 'EN'}
@@ -69,7 +60,7 @@ export default function Navbar() {
           {user ? (
             <Link
               href="/dashboard"
-              className="h-9 px-4 flex items-center font-label text-xs font-semibold tracking-wide uppercase text-on-primary bg-primary hover:bg-primary/85 transition-colors"
+              className="h-9 px-3 sm:px-4 flex items-center font-label text-[10px] sm:text-xs font-semibold tracking-wide uppercase text-on-primary bg-primary hover:bg-primary/85 transition-colors"
             >
               Dashboard
             </Link>
@@ -80,13 +71,13 @@ export default function Navbar() {
                 <>
                   <Link
                     href="/auth/login"
-                    className="h-9 px-4 items-center font-label text-xs font-semibold tracking-wide uppercase text-on-surface-variant hover:text-on-surface bg-surface-container-low hover:bg-surface-container border border-outline-variant/20 transition-colors hidden sm:flex"
+                    className="h-9 px-2.5 sm:px-4 hidden xs:flex items-center font-label text-[10px] sm:text-xs font-semibold tracking-wide uppercase text-on-surface-variant hover:text-on-surface bg-surface-container-low hover:bg-surface-container border border-outline-variant/20 transition-colors"
                   >
                     {t.landingLogin}
                   </Link>
                   <Link
                     href="/auth/register"
-                    className="h-9 px-4 flex items-center font-label text-xs font-semibold tracking-wide uppercase text-on-primary bg-primary hover:bg-primary/85 transition-colors"
+                    className="h-9 px-2.5 sm:px-4 flex items-center font-label text-[10px] sm:text-xs font-semibold tracking-wide uppercase text-on-primary bg-primary hover:bg-primary/85 transition-colors"
                   >
                     {t.landingGetStarted}
                   </Link>
