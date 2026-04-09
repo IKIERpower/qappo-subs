@@ -16,25 +16,37 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [showPass, setShowPass] = useState(false)
 
-  async function handleLogin() {
-    if (!email.trim() || !password) {
-      setError('Please enter your email and password.')
-      return
-    }
-    setLoading(true)
-    setError(null)
+   async function handleLogin() {
+     if (!email.trim() || !password) {
+       setError('Please enter your email and password.')
+       return
+     }
+     setLoading(true)
+     setError(null)
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+     try {
+       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
-    if (error) {
-      setError(error.message === 'Invalid login credentials'
-        ? 'Invalid email or password. Please try again.'
-        : error.message)
-      setLoading(false)
-    } else {
-      router.replace('/dashboard')
-    }
-  }
+       if (error) {
+         const errorMsg = error.message === 'Invalid login credentials'
+           ? 'Invalid email or password. Please try again.'
+           : error.message
+         setError(errorMsg)
+         setLoading(false)
+       } else {
+         // Verify session is stored
+         const { data: sessionData } = await supabase.auth.getSession()
+         
+         // Wait a moment for session to be set in cookies and localStorage
+         await new Promise(resolve => setTimeout(resolve, 1000))
+         
+         router.replace('/dashboard')
+       }
+     } catch (err) {
+       setError('An unexpected error occurred. Please try again.')
+       setLoading(false)
+     }
+   }
 
   function handleKey(e: React.KeyboardEvent) {
     if (e.key === 'Enter') handleLogin()
