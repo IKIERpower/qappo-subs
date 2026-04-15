@@ -2,13 +2,12 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import clsx from 'clsx'
 import { useAuth } from '@/app/lib/AuthContext'
 import { useTheme } from '@/app/lib/ThemeContext'
 import { useLocale } from '@/app/lib/LocaleContext'
 import { useTranslation } from '@/app/lib/translations'
-import { supabase } from '@/app/lib/supabase'
 
 import Footer from '@/app/components/Footer'
 import FooterCompact from '@/app/components/FooterCompact'
@@ -26,29 +25,15 @@ const pageMap: Record<string, { icon: string; labelKey: string }> = {
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const { user, loading, signOut } = useAuth()
+  const { user, loading, signOut, displayName } = useAuth()
   const { isDark, toggleTheme } = useTheme()
   const { locale } = useLocale()
   const t = useTranslation(locale)
   const [signingOut, setSigningOut] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)   // desktop dropdown
   const [mobileUserMenuOpen, setMobileUserMenuOpen] = useState(false) // mobile dropdown
-  const [displayName, setDisplayName] = useState('')
 
-  // Load display name from profiles
-  useEffect(() => {
-    if (!user) return
-    supabase
-      .from('profiles')
-      .select('display_name')
-      .eq('id', user.id)
-      .single()
-      .then(({ data }) => {
-        if (data?.display_name) setDisplayName(data.display_name)
-      })
-  }, [user])
-
-  const initials = (user || (user?.email?.split('@')[0] ?? 'U')).slice(0, 2).toUpperCase()
+  const initials = (user?.email?.split('@')[0] ?? 'U').slice(0, 2).toUpperCase()
   const sidebarName = displayName || user?.email?.split('@')[0] || '—'
   const currentNav = navItems.find(n => pathname.startsWith(n.href))
   const currentPageData = currentNav ?? pageMap[pathname] ?? { icon: 'dashboard', labelKey: 'dashboard' }

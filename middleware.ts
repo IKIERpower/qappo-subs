@@ -29,7 +29,7 @@ export async function middleware(request: NextRequest) {
     try {
         await supabase.auth.getUser()
     } catch (error) {
-        console.error('Auth error in middleware:', error)
+        // Silent fail - auth errors are expected during initial load
     }
 
     return supabaseResponse

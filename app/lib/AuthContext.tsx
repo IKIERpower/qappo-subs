@@ -108,9 +108,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async function setDisplayName(name: string) {
         if (!user) return
         try {
+            // Zaktualizuj w bazie
             await supabase
                 .from('profiles')
                 .upsert({ id: user.id, display_name: name }, { onConflict: 'id' })
+            // Zaktualizuj state (cache)
             setDisplayNameState(name)
         } catch (error) {
             console.error('Error saving display name:', error)
