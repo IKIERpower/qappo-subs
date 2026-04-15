@@ -48,7 +48,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       })
   }, [user])
 
-  const initials = (displayName || (user?.email?.split('@')[0] ?? 'U')).slice(0, 2).toUpperCase()
+  const initials = (user || (user?.email?.split('@')[0] ?? 'U')).slice(0, 2).toUpperCase()
   const sidebarName = displayName || user?.email?.split('@')[0] || '—'
   const currentNav = navItems.find(n => pathname.startsWith(n.href))
   const currentPageData = currentNav ?? pageMap[pathname] ?? { icon: 'dashboard', labelKey: 'dashboard' }

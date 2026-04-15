@@ -37,7 +37,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         let isMounted = true
-        let sessionCheckInterval: NodeJS.Timeout
         
         const initializeAuth = async () => {
             try {
@@ -58,20 +57,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         initializeAuth()
 
-        // Check session validity every 5 minutes
-        sessionCheckInterval = setInterval(async () => {
-            if (!isMounted) return
-            try {
-                const { data: { session } } = await supabase.auth.getSession()
-                if (isMounted) {
-                    setSession(session)
-                    setUser(session?.user ?? null)
-                }
-            } catch (error) {
-                console.error('Session validation error:', error)
-            }
-        }, 5 * 60 * 1000)
-
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             if (isMounted) {
                 setSession(session)
@@ -82,7 +67,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return () => {
             isMounted = false
             subscription.unsubscribe()
-            clearInterval(sessionCheckInterval)
         }
     }, [])
 
