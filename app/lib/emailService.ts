@@ -1,4 +1,5 @@
-import { supabase, Alert, Subscription } from '@/app/lib/supabase'
+import { getSupabaseBrowserClient, Alert, Subscription } from '@/app/lib/supabase'
+const supabase = getSupabaseBrowserClient()
 import { differenceInDays, parseISO } from 'date-fns'
 
 /**

@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+import { createBrowserClient } from '@supabase/ssr'
 
 export function getSupabaseBrowserClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -12,12 +12,9 @@ export function getSupabaseBrowserClient() {
     throw new Error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY')
   }
 
-  return createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-    },
-  })
+  // createBrowserClient from @supabase/ssr automatically handles cookie-based
+  // session storage, which is required for SSR/middleware session sync in Next.js App Router
+  return createBrowserClient(supabaseUrl, supabaseAnonKey)
 }
 
 export type Database = {
@@ -65,5 +62,6 @@ export interface Alert {
   description?: string
 }
 
-export const supabase = getSupabaseBrowserClient()
+// UWAGA: Nie eksportujemy singletona - każdy komponent tworzy klienta przez getSupabaseBrowserClient()
+// createBrowserClient z @supabase/ssr jest już zoptymalizowany i wewnętrznie cachuje instancję
 

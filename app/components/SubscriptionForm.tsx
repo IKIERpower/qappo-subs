@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase, Subscription } from '@/app/lib/supabase'
+import { getSupabaseBrowserClient, Subscription } from '@/app/lib/supabase'
+const supabase = getSupabaseBrowserClient()
 import AppLayout from '@/app/components/AppLayout'
 import clsx from 'clsx'
 

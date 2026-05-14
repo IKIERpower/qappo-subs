@@ -24,19 +24,19 @@ export default function FooterCompact() {
           {/* Links */}
           <nav className="flex items-center gap-4 flex-wrap justify-center">
             <Link
-              href="/legal/privacy-policy"
+              href={`/${locale}/legal/privacy-policy`}
               className="font-label text-[11px] text-on-surface-variant/70 hover:text-on-surface-variant transition-colors"
             >
               {t.privacyPolicy}
             </Link>
             <Link
-              href="/legal/terms-of-service"
+              href={`/${locale}/legal/terms-of-service`}
               className="font-label text-[11px] text-on-surface-variant/70 hover:text-on-surface-variant transition-colors"
             >
               {t.termsOfService}
             </Link>
             <Link
-              href="/legal/cookie-policy"
+              href={`/${locale}/legal/cookie-policy`}
               className="font-label text-[11px] text-on-surface-variant/70 hover:text-on-surface-variant transition-colors"
             >
               {t.cookiePolicy}

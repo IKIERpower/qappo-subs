@@ -48,25 +48,25 @@ export default function Footer() {
             </h4>
             <nav className="space-y-3">
               <Link
-                href="/dashboard"
+                href={`/${locale}/dashboard`}
                 className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary dark:hover:text-on-surface-variant transition-colors"
               >
                 Dashboard
               </Link>
               <Link
-                href="/subscriptions"
+                href={`/${locale}/subscriptions`}
                 className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary dark:hover:text-on-surface-variant transition-colors"
               >
                 Subscriptions
               </Link>
               <Link
-                href="/analytics"
+                href={`/${locale}/analytics`}
                 className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary dark:hover:text-on-surface-variant transition-colors"
               >
                 Analytics
               </Link>
               <Link
-                href="/alerts"
+                href={`/${locale}/alerts`}
                 className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary dark:hover:text-on-surface-variant transition-colors"
               >
                 Alerts
@@ -81,25 +81,25 @@ export default function Footer() {
             </h4>
             <nav className="space-y-3">
               <Link
-                href="/legal/privacy-policy"
+                href={`/${locale}/legal/privacy-policy`}
                 className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary dark:hover:text-on-surface-variant transition-colors"
               >
                 {t.privacyPolicy}
               </Link>
               <Link
-                href="/legal/terms-of-service"
+                href={`/${locale}/legal/terms-of-service`}
                 className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary dark:hover:text-on-surface-variant transition-colors"
               >
                 {t.termsOfService}
               </Link>
               <Link
-                href="/legal/cookie-policy"
+                href={`/${locale}/legal/cookie-policy`}
                 className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary dark:hover:text-on-surface-variant transition-colors"
               >
                 {t.cookiePolicy}
               </Link>
               <Link
-                href="/legal/gdpr"
+                href={`/${locale}/legal/gdpr`}
                 className="block font-label text-sm text-on-surface dark:text-on-surface/90 hover:text-primary dark:hover:text-on-surface-variant transition-colors"
               >
                 {t.gdpr}

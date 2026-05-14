@@ -8,36 +8,34 @@ import { useAuth } from '@/app/lib/AuthContext'
 import { useTheme } from '@/app/lib/ThemeContext'
 import { useLocale } from '@/app/lib/LocaleContext'
 import { useTranslation } from '@/app/lib/translations'
-
 import Footer from '@/app/components/Footer'
 import FooterCompact from '@/app/components/FooterCompact'
 
-const navItems = [
-  { href: '/dashboard',     icon: 'dashboard',     labelKey: 'dashboard' },
-  { href: '/subscriptions', icon: 'subscriptions', labelKey: 'subscriptionsNav' },
-  { href: '/analytics',     icon: 'analytics',     labelKey: 'analytics' },
-  { href: '/alerts',        icon: 'notifications', labelKey: 'alerts' },
-]
-
-const pageMap: Record<string, { icon: string; labelKey: string }> = {
-  '/settings': { icon: 'settings', labelKey: 'settings' },
-}
+const NAV_ITEMS = [
+  { path: 'dashboard',     icon: 'dashboard',     labelKey: 'dashboard' },
+  { path: 'subscriptions', icon: 'subscriptions', labelKey: 'subscriptionsNav' },
+  { path: 'analytics',     icon: 'analytics',     labelKey: 'analytics' },
+  { path: 'alerts',        icon: 'notifications', labelKey: 'alerts' },
+] as const
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { user, loading, signOut, displayName } = useAuth()
   const { isDark, toggleTheme } = useTheme()
-  const { locale } = useLocale()
+  const { locale, setLocale } = useLocale()
   const t = useTranslation(locale)
   const [signingOut, setSigningOut] = useState(false)
-  const [userMenuOpen, setUserMenuOpen] = useState(false)   // desktop dropdown
-  const [mobileUserMenuOpen, setMobileUserMenuOpen] = useState(false) // mobile dropdown
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [mobileUserMenuOpen, setMobileUserMenuOpen] = useState(false)
 
   const initials = (user?.email?.split('@')[0] ?? 'U').slice(0, 2).toUpperCase()
   const sidebarName = displayName || user?.email?.split('@')[0] || '—'
-  const currentNav = navItems.find(n => pathname.startsWith(n.href))
-  const currentPageData = currentNav ?? pageMap[pathname] ?? { icon: 'dashboard', labelKey: 'dashboard' }
-  const currentPageLabel = t[currentPageData.labelKey as keyof typeof t] || 'Dashboard'
+
+  // Determine active nav item from pathname (e.g. /pl/dashboard -> dashboard)
+  const pathSegments = pathname.split('/')
+  const currentPath = pathSegments[2] ?? '' // after locale
+  const currentNav = NAV_ITEMS.find(n => currentPath.startsWith(n.path))
+  const currentPageLabel = currentNav ? t[currentNav.labelKey] : t.settings
 
   async function handleSignOut() {
     setSigningOut(true)
@@ -55,24 +53,23 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen bg-surface overflow-hidden">
 
-      {/* ════════════════════════════════════════
-          DESKTOP SIDEBAR (hidden on mobile)
-      ════════════════════════════════════════ */}
+      {/* DESKTOP SIDEBAR */}
       <aside className="hidden md:flex w-[240px] min-w-[240px] h-screen bg-surface-container-low flex-col">
-        {/* Logo */}
         <div className="px-6 py-6 border-b border-outline-variant/20">
-          <div className="font-headline font-bold text-base tracking-tighter text-on-surface">SubManager</div>
-          <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mt-0.5">Subscription Tracker</div>
+          <Link href={`/${locale}`} className="block">
+            <div className="font-headline font-bold text-base tracking-tighter text-on-surface">SubManager</div>
+            <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mt-0.5">Subscription Tracker</div>
+          </Link>
         </div>
 
-        {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-          {navItems.map(item => {
-            const isActive = pathname.startsWith(item.href)
+          {NAV_ITEMS.map(item => {
+            const href = `/${locale}/${item.path}`
+            const isActive = pathname.startsWith(href)
             return (
               <Link
-                key={item.href}
-                href={item.href}
+                key={item.path}
+                href={href}
                 className={clsx(
                   'flex items-center gap-3 px-3 py-3 transition-all duration-150 group relative',
                   isActive
@@ -84,7 +81,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <span className={clsx('material-symbols-outlined text-[20px]', isActive ? 'text-on-surface' : 'text-on-surface-variant')}>
                   {item.icon}
                 </span>
-                <span className="font-label text-sm tracking-tight">{t[item.labelKey as keyof typeof t]}</span>
+                <span className="font-label text-sm tracking-tight">{t[item.labelKey]}</span>
               </Link>
             )
           })}
@@ -125,8 +122,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     <div className={clsx('absolute top-0.5 w-3 h-3 rounded-full shadow transition-all duration-300', isDark ? 'left-4 bg-white' : 'left-0.5 bg-white')} />
                   </div>
                 </button>
+                {/* Language switcher */}
+                <button
+                  onClick={() => setLocale(locale === 'en' ? 'pl' : 'en')}
+                  className="w-full flex items-center gap-2 px-4 py-3 font-label text-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[15px]">language</span>
+                  {locale === 'en' ? 'Polski' : 'English'}
+                </button>
                 <Link
-                  href="/settings"
+                  href={`/${locale}/settings`}
                   onClick={() => setUserMenuOpen(false)}
                   className="flex items-center gap-2 px-4 py-3 font-label text-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors"
                 >
@@ -150,34 +155,28 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      {/* ════════════════════════════════════════
-          MAIN CONTENT
-      ════════════════════════════════════════ */}
+      {/* MAIN CONTENT */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-
-        {/* Top bar */}
         <header className="h-14 bg-surface-container-lowest/90 backdrop-blur-md border-b border-outline-variant/20 flex items-center justify-between px-4 md:px-8 flex-shrink-0 sticky top-0 z-40">
-          {/* Left: page title */}
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-[18px] text-on-surface-variant hidden md:block">
-              {currentPageData.icon}
+              {currentNav?.icon ?? 'settings'}
             </span>
             <span className="font-headline font-semibold text-sm tracking-tight text-on-surface">
               {currentPageLabel}
             </span>
           </div>
 
-          {/* Right */}
           <div className="flex items-center gap-2">
             <Link
-              href="/subscriptions/new"
+              href={`/${locale}/subscriptions/new`}
               className="flex items-center gap-1.5 bg-primary text-on-primary font-label font-bold text-[11px] uppercase tracking-widest px-3 h-9 hover:opacity-80 transition-opacity"
             >
               <span className="material-symbols-outlined text-[14px]">add</span>
               <span className="hidden md:inline">{t.newEntry}</span>
             </Link>
 
-            {/* Mobile-only: user avatar in topbar */}
+            {/* Mobile user avatar */}
             <div className="md:hidden relative">
               <button
                 onClick={() => setMobileUserMenuOpen(v => !v)}
@@ -194,7 +193,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                       <div className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant">{t.signedInAs}</div>
                       <div className="font-label text-xs text-on-surface font-medium mt-0.5 truncate">{user?.email}</div>
                     </div>
-                    {/* Dark mode — only mobile */}
                     <button
                       onClick={toggleTheme}
                       className="w-full flex items-center justify-between px-4 py-3 font-label text-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors"
@@ -203,12 +201,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                         <span className="material-symbols-outlined text-[16px]">{!isDark ? 'light_mode' : 'dark_mode'}</span>
                         {!isDark ? t.lightMode : t.darkMode}
                       </div>
-                      <div className={clsx('w-9 h-5 rounded-full transition-all duration-300 relative flex-shrink-0',isDark ? 'bg-secondary' : 'bg-surface-container-high')}>
-                        <div className={clsx('absolute top-1 w-3 h-3 rounded-full shadow transition-all duration-300', isDark  ? 'left-5 bg-white' : 'left-1 bg-white')} />
-                      </div>
+                    </button>
+                    <button
+                      onClick={() => setLocale(locale === 'en' ? 'pl' : 'en')}
+                      className="w-full flex items-center gap-2 px-4 py-3 font-label text-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors border-t border-outline-variant/10"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">language</span>
+                      {locale === 'en' ? 'Polski' : 'English'}
                     </button>
                     <Link
-                      href="/settings"
+                      href={`/${locale}/settings`}
                       onClick={() => setMobileUserMenuOpen(false)}
                       className="flex items-center gap-2 px-4 py-3 font-label text-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors border-t border-outline-variant/10"
                     >
@@ -233,33 +235,30 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        {/* Page content */}
         <main className="flex-1 overflow-auto" onClick={() => { setUserMenuOpen(false); setMobileUserMenuOpen(false) }}>
           {children}
-          {pathname === '/settings' ? <Footer /> : <FooterCompact />}
-          {/* Spacer for mobile bottom nav */}
+          {currentPath === 'settings' ? <Footer /> : <FooterCompact />}
           <div className="h-14 md:hidden" />
         </main>
       </div>
 
-      {/* ════════════════════════════════════════
-          MOBILE BOTTOM NAV (hidden on desktop)
-      ════════════════════════════════════════ */}
+      {/* MOBILE BOTTOM NAV */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface-container-lowest border-t border-outline-variant/20 flex">
-        {navItems.map(item => {
-          const isActive = pathname.startsWith(item.href)
+        {NAV_ITEMS.map(item => {
+          const href = `/${locale}/${item.path}`
+          const isActive = pathname.startsWith(href)
           return (
             <Link
-              key={item.href}
-              href={item.href}
+              key={item.path}
+              href={href}
               className={clsx(
                 'flex-1 flex flex-col items-center justify-center py-2.5 gap-1 relative transition-colors',
-                isActive ? 'text-on-surface-variant' : 'text-on-surface'
+                isActive ? 'text-on-surface' : 'text-on-surface-variant'
               )}
             >
-              {isActive && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-on-surface-variant" />}
+              {isActive && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-on-surface" />}
               <span className="material-symbols-outlined text-[22px]">{item.icon}</span>
-              <span className="font-label text-[9px] uppercase tracking-wider">{t[item.labelKey as keyof typeof t]}</span>
+              <span className="font-label text-[9px] uppercase tracking-wider">{t[item.labelKey]}</span>
             </Link>
           )
         })}

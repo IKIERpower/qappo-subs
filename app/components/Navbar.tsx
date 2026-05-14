@@ -59,7 +59,7 @@ export default function Navbar() {
           {/* Auth buttons */}
           {user ? (
             <Link
-              href="/dashboard"
+              href={`/${locale}/dashboard`}
               className="h-9 px-3 sm:px-4 flex items-center font-label text-[10px] sm:text-xs font-semibold tracking-wide uppercase text-on-primary bg-primary hover:bg-primary/85 transition-colors"
             >
               Dashboard
@@ -70,13 +70,13 @@ export default function Navbar() {
               {!isAuthPage && (
                 <>
                   <Link
-                    href="/auth/login"
+                    href={`/${locale}/auth/login`}
                     className="h-9 px-2.5 sm:px-4 hidden xs:flex items-center font-label text-[10px] sm:text-xs font-semibold tracking-wide uppercase text-on-surface-variant hover:text-on-surface bg-surface-container-low hover:bg-surface-container border border-outline-variant/20 transition-colors"
                   >
                     {t.landingLogin}
                   </Link>
                   <Link
-                    href="/auth/register"
+                    href={`/${locale}/auth/register`}
                     className="h-9 px-2.5 sm:px-4 flex items-center font-label text-[10px] sm:text-xs font-semibold tracking-wide uppercase text-on-primary bg-primary hover:bg-primary/85 transition-colors"
                   >
                     {t.landingGetStarted}

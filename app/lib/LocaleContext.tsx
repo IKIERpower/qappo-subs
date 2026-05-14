@@ -1,33 +1,34 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+// LocaleContext - uproszczony, locale pochodzi z URL (/pl/... lub /en/...)
+// Komponent używa useParams() żeby czytać locale, a do zmiany przekierowuje na inny URL
 
-type Locale = 'en' | 'pl'
+import { createContext, useContext } from 'react'
+import { useParams, usePathname, useRouter } from 'next/navigation'
+
+export type Locale = 'en' | 'pl'
+export const LOCALES: Locale[] = ['en', 'pl']
 
 interface LocaleContextType {
   locale: Locale
   setLocale: (locale: Locale) => void
 }
 
-const LocaleContext = createContext<LocaleContextType | undefined>(undefined)
+const LocaleContext = createContext<LocaleContextType>({
+  locale: 'pl',
+  setLocale: () => {},
+})
 
-export function LocaleProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>('en')
-
-  useEffect(() => {
-    const saved = localStorage.getItem('locale') as Locale | null
-    if (saved && ['en', 'pl'].includes(saved)) {
-      setLocaleState(saved)
-    } else {
-      const browserLang = navigator.language.split('-')[0]
-      setLocaleState((browserLang === 'pl' ? 'pl' : 'en') as Locale)
-    }
-  }, [])
+export function LocaleProvider({ children, locale }: { children: React.ReactNode; locale: Locale }) {
+  const router = useRouter()
+  const pathname = usePathname()
 
   function setLocale(newLocale: Locale) {
-    setLocaleState(newLocale)
-    localStorage.setItem('locale', newLocale)
-    document.documentElement.lang = newLocale
+    if (newLocale === locale) return
+    // Swap the locale segment in the URL: /pl/dashboard -> /en/dashboard
+    const newPath = pathname.replace(`/${locale}`, `/${newLocale}`)
+    document.cookie = `NEXT_LOCALE=${newLocale};path=/;max-age=${60 * 60 * 24 * 365}`
+    router.push(newPath)
   }
 
   return (
@@ -38,11 +39,5 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useLocale() {
-  const context = useContext(LocaleContext)
-  if (!context) {
-    throw new Error('useLocale must be used within LocaleProvider')
-  }
-  return context
+  return useContext(LocaleContext)
 }
-
-

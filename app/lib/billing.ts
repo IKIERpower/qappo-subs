@@ -1,5 +1,6 @@
 import { isBefore, startOfDay, addWeeks, addMonths, addYears, parseISO, format } from 'date-fns'
-import { supabase, Subscription } from './supabase'
+import { getSupabaseBrowserClient, Subscription } from './supabase'
+const supabase = getSupabaseBrowserClient()
 
 export const BILLING_CYCLES = [
   { id: 'weekly', label: 'Weekly' },
