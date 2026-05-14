@@ -12,7 +12,6 @@ import Footer from '@/app/components/Footer'
 export default function UpdatePasswordPage() {
   const router = useRouter()
   const { locale } = useLocale()
-  const { locale } = useLocale()
   const t = useTranslation(locale)
 
   const [newPassword, setNewPassword] = useState('')
