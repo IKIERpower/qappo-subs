@@ -1,6 +1,7 @@
 'use client'
 
 import { useLocale } from '@/app/lib/LocaleContext'
+import { useCategories } from '@/app/lib/CategoriesContext'
 import { useEffect, useState } from 'react'
 import { getSupabaseBrowserClient, Subscription } from '@/app/lib/supabase'
 const supabase = getSupabaseBrowserClient()
@@ -15,15 +16,6 @@ import {
 import { autoRenewSubscriptions, getMonthlyEquivalent } from '@/app/lib/billing'
 
 const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
-const CAT_COLORS: Record<string, string> = {
-  'Entertainment': '#006D42',
-  'Cloud/Hosting': '#1D4ED8',
-  'Dev Tools':     '#374151',
-  'Development':   '#7C3AED',
-  'Utilities':     '#7D0015',
-  'Productivity':  '#B45309',
-  'Other':         '#9CA3AF',
-}
 
 function monthlyEquivalent(sub: Subscription): number {
   if (sub.status !== 'active') return 0
@@ -34,6 +26,7 @@ interface Scenario { id: string; label: string; desc: string; checked: boolean }
 
 export default function AnalyticsPage() {
   const { locale } = useLocale()
+  const { categories } = useCategories()
   const { user } = useAuth()
   const [subs, setSubs] = useState<Subscription[]>([])
   const [loading, setLoading] = useState(true)
@@ -295,7 +288,7 @@ export default function AnalyticsPage() {
                   <PieChart>
                     <Pie data={catData} cx="50%" cy="50%" innerRadius={55} outerRadius={85} dataKey="value" stroke="none">
                       {catData.map((_, i) => (
-                        <Cell key={i} fill={CAT_COLORS[catData[i].name] ?? '#9CA3AF'} />
+                        <Cell key={i} fill={categories.find(c => c.name === catData[i].name)?.color ?? '#9CA3AF'} />
                       ))}
                     </Pie>
                     <Tooltip
@@ -311,10 +304,10 @@ export default function AnalyticsPage() {
                   const pct = catTotal > 0 ? (value / catTotal * 100) : 0
                   return (
                     <div key={name} className="flex items-center gap-2 sm:gap-3">
-                      <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 flex-shrink-0" style={{ background: CAT_COLORS[name] ?? '#9CA3AF' }} />
+                      <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 flex-shrink-0" style={{ background: categories.find(c => c.name === name)?.color ?? '#9CA3AF' }} />
                       <span className="font-label text-[11px] sm:text-xs text-on-surface flex-1 truncate">{name}</span>
                       <div className="hidden sm:block w-16 sm:w-20 lg:w-24 h-1 bg-surface-container overflow-hidden flex-shrink-0">
-                        <div className="h-full" style={{ width: `${pct}%`, background: CAT_COLORS[name] ?? '#9CA3AF' }} />
+                        <div className="h-full" style={{ width: `${pct}%`, background: categories.find(c => c.name === name)?.color ?? '#9CA3AF' }} />
                       </div>
                       <span className="font-label text-[10px] sm:text-xs tabular-nums text-on-surface-variant w-6 sm:w-8 text-right flex-shrink-0">{pct.toFixed(0)}%</span>
                       <span className="font-label text-[10px] sm:text-xs tabular-nums text-on-surface text-right flex-shrink-0 whitespace-nowrap">{value.toFixed(2)} PLN</span>

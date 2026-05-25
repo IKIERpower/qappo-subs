@@ -9,9 +9,9 @@ import { useAuth } from '@/app/lib/AuthContext'
 import AppLayout from '@/app/components/AppLayout'
 import Link from 'next/link'
 import clsx from 'clsx'
+import CategoryDropdown from '@/app/components/CategoryDropdown'
 import { motion, AnimatePresence } from 'framer-motion'
 
-const CATEGORIES = ['Entertainment', 'Development', 'Utilities', 'Productivity']
 const CURRENCIES = ['PLN', 'USD', 'EUR']
 const BILLING_CYCLES = [
     { value: 'weekly', label: 'Weekly' },
@@ -98,133 +98,6 @@ function FieldInput({ className, ...props }: React.InputHTMLAttributes<HTMLInput
     )
 }
 
-function CategoryDropdown({
-                              value,
-                              onChange,
-                              customCategory,
-                              setCustomCategory,
-                              customCategoryValue,
-                              setCustomCategoryValue,
-                          }: {
-    value: string
-    onChange: (val: string) => void
-    customCategory: boolean
-    setCustomCategory: (v: boolean) => void
-    customCategoryValue: string
-    setCustomCategoryValue: (v: string) => void
-}) {
-    const [open, setOpen] = useState(false)
-    const ref = useRef<HTMLDivElement>(null)
-
-    useEffect(() => {
-        function handleClick(e: MouseEvent) {
-            if (ref.current && !ref.current.contains(e.target as Node)) {
-                setOpen(false)
-            }
-        }
-        document.addEventListener('mousedown', handleClick)
-        return () => document.removeEventListener('mousedown', handleClick)
-    }, [])
-
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && customCategory) {
-            e.preventDefault()
-            setOpen(false)
-        }
-    }
-
-    const displayValue = customCategory ? (customCategoryValue || 'Other') : value
-    const allOptions = [...CATEGORIES, 'Other']
-
-    return (
-        <div ref={ref} className="relative z-20">
-            <button
-                type="button"
-                onClick={() => setOpen(o => !o)}
-                className={clsx(
-                    'w-full px-4 py-3 bg-surface-container-low border border-outline-variant/30 text-on-surface font-label text-sm',
-                    'flex items-center justify-between transition-all duration-200',
-                    'hover:border-outline-variant focus:outline-none',
-                    open && 'border-on-surface/40'
-                )}
-            >
-                <span className={clsx(
-                    'uppercase tracking-wider text-[10px] transition-colors duration-200 truncate pr-2',
-                    displayValue ? 'text-on-surface' : 'text-on-surface-variant/50'
-                )}>
-                    {displayValue || 'Select category'}
-                </span>
-                <span className={clsx(
-                    'material-symbols-outlined text-[16px] text-on-surface-variant transition-transform duration-300 shrink-0',
-                    open && 'rotate-180'
-                )}>
-                    expand_more
-                </span>
-            </button>
-
-            <div
-                className={clsx(
-                    'absolute z-[60] left-0 right-0 mt-1 bg-surface-container-high border border-outline-variant/50 shadow-xl',
-                    'overflow-hidden transition-all duration-300 origin-top',
-                    open
-                        ? 'opacity-100 scale-y-100 pointer-events-auto'
-                        : 'opacity-0 scale-y-95 pointer-events-none'
-                )}
-            >
-                {allOptions.map((cat, i) => {
-                    const isOther = cat === 'Other'
-                    const isActive = isOther ? customCategory : (!customCategory && value === cat)
-                    return (
-                        <button
-                            key={cat}
-                            type="button"
-                            onClick={() => {
-                                if (isOther) {
-                                    setCustomCategory(true)
-                                    onChange(customCategoryValue || '')
-                                } else {
-                                    setCustomCategory(false)
-                                    onChange(cat)
-                                    setOpen(false)
-                                }
-                            }}
-                            className={clsx(
-                                'w-full px-4 py-3 text-left font-label text-[10px] uppercase tracking-wider',
-                                'transition-all duration-150 flex items-center justify-between',
-                                i !== 0 && 'border-t border-outline-variant/15',
-                                isActive
-                                    ? 'bg-on-surface text-surface'
-                                    : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
-                            )}
-                        >
-                            {cat}
-                            {isActive && <span className="material-symbols-outlined text-[14px]">check</span>}
-                        </button>
-                    )
-                })}
-
-                {customCategory && (
-                    <div className="px-4 pb-3 pt-1 border-t border-outline-variant/15 bg-surface-container-highest">
-                        <input
-                            type="text"
-                            value={customCategoryValue}
-                            onChange={e => {
-                                const v = e.target.value.slice(0, 30)
-                                setCustomCategoryValue(v)
-                                onChange(v)
-                            }}
-                            onKeyDown={handleKeyDown}
-                            placeholder="Type and press Enter..."
-                            maxLength={30}
-                            autoFocus
-                            className="w-full px-3 py-2 bg-surface-container border border-outline-variant/30 text-on-surface font-label text-[11px] placeholder:text-on-surface-variant/50 focus:outline-none focus:border-on-surface/40 transition-colors duration-200"
-                        />
-                    </div>
-                )}
-            </div>
-        </div>
-    )
-}
 
 function BillingCycleSlider({ value, onChange }: { value: string; onChange: (val: string) => void }) {
     const activeIndex = BILLING_CYCLES.findIndex(c => c.value === value)
@@ -285,8 +158,6 @@ export default function NewSubscriptionPage() {
     const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({})
     const [customCurrency, setCustomCurrency] = useState(false)
     const [customCurrencyValue, setCustomCurrencyValue] = useState('')
-    const [customCategory, setCustomCategory] = useState(false)
-    const [customCategoryValue, setCustomCategoryValue] = useState('')
 
     function set(key: keyof FormState, value: string) {
         setForm(prev => ({ ...prev, [key]: value }))
@@ -451,14 +322,7 @@ export default function NewSubscriptionPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6">
                         <div className="space-y-2">
                             <Label>Category</Label>
-                            <CategoryDropdown
-                                value={form.category}
-                                onChange={v => set('category', v)}
-                                customCategory={customCategory}
-                                setCustomCategory={setCustomCategory}
-                                customCategoryValue={customCategoryValue}
-                                setCustomCategoryValue={setCustomCategoryValue}
-                            />
+                            <CategoryDropdown value={form.category ?? ''} onChange={v => set('category', v)} />
                         </div>
 
                         <div className="space-y-2">

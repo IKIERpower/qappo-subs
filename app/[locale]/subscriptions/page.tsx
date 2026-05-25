@@ -4,6 +4,7 @@ import { useLocale } from '@/app/lib/LocaleContext'
 import { useEffect, useState, useCallback, Fragment, useRef } from 'react'
 import { getSupabaseBrowserClient, Subscription } from '@/app/lib/supabase'
 const supabase = getSupabaseBrowserClient()
+import { useCategories } from '@/app/lib/CategoriesContext'
 import { useAuth } from '@/app/lib/AuthContext'
 import AppLayout from '@/app/components/AppLayout'
 import Link from 'next/link'
@@ -36,6 +37,7 @@ function billingCycleLabel(cycle: Subscription['billing_cycle']): string {
 export default function SubscriptionsPage() {
   const { locale } = useLocale()
   const { user } = useAuth()
+  const { categories: allCategories } = useCategories()
   const [subs, setSubs] = useState<Subscription[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -103,7 +105,6 @@ export default function SubscriptionsPage() {
     setDeletingId(null)
   }
 
-    const categories = Array.from(new Set(subs.map(s => s.category))).sort()
 
   const filtered = subs
     .filter(s => {
@@ -154,7 +155,7 @@ export default function SubscriptionsPage() {
             className="px-3 py-2 bg-surface-container-low border border-outline-variant/20 text-on-surface font-label text-xs uppercase tracking-wide focus:outline-none focus:border-primary transition-colors cursor-pointer hidden sm:block"
           >
             <option value="">All Categories</option>
-            {categories.map(c => <option key={c} value={c}>{c}</option>)}
+            {(allCategories ?? []).map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
           </select>
           <div className="ml-auto font-label text-xs text-on-surface-variant whitespace-nowrap">
             <span className="tabular-nums">{filtered.length}</span> entries &middot; burn{' '}
@@ -264,7 +265,7 @@ export default function SubscriptionsPage() {
                               </button>
                             )}
                             <Link
-                              href={`/subscriptions/${sub.id}/edit`}
+                              href={`/${locale}/subscriptions/${sub.id}/edit`}
                               className="flex-1 text-center font-label text-xs uppercase tracking-wider py-2 border border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-primary transition-all"
                             >
                               Edit
@@ -422,7 +423,7 @@ export default function SubscriptionsPage() {
                                     </button>
                                   )}
                                   <Link
-                                    href={`/subscriptions/${sub.id}/edit`}
+                                    href={`/${locale}/subscriptions/${sub.id}/edit`}
                                     onClick={e => e.stopPropagation()}
                                     className="font-label text-xs uppercase tracking-wider px-3 py-1.5 border border-outline-variant/30 text-on-surface-variant hover:border-primary hover:text-primary transition-all"
                                   >

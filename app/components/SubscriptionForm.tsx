@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabaseBrowserClient, Subscription } from '@/app/lib/supabase'
 const supabase = getSupabaseBrowserClient()
 import AppLayout from '@/app/components/AppLayout'
 import clsx from 'clsx'
+import { useCategories } from '@/app/lib/CategoriesContext'
 
-const CATEGORIES = ['Entertainment', 'Cloud/Hosting', 'Dev Tools', 'Utilities', 'Productivity', 'Development', 'Other']
 const CURRENCIES = ['PLN', 'USD', 'EUR', 'GBP']
 
 interface SubscriptionFormProps {
@@ -17,6 +17,7 @@ interface SubscriptionFormProps {
 
 export default function SubscriptionForm({ initial, id }: SubscriptionFormProps) {
   const router = useRouter()
+  const { categoryNames } = useCategories()
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [customCurrency, setCustomCurrency] = useState(!CURRENCIES.includes(initial?.currency ?? 'PLN'))
@@ -193,7 +194,7 @@ export default function SubscriptionForm({ initial, id }: SubscriptionFormProps)
              <div>
                <label className={labelClass}>Category</label>
                <select value={form.category} onChange={e => set('category', e.target.value)} className={inputClass('category')}>
-                 {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                 {[...categoryNames, 'Other'].map(c => <option key={c} value={c}>{c}</option>)}
                </select>
              </div>
              <div>

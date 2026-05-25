@@ -12,23 +12,9 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import { useTheme } from '@/app/lib/ThemeContext'
 import { useLocale } from '@/app/lib/LocaleContext'
 import { useTranslation } from '@/app/lib/translations'
+import { useCategories } from '@/app/lib/CategoriesContext'
 import { autoRenewSubscriptions } from '@/app/lib/billing'
 
-const CATEGORIES = [
-  { name: 'Entertainment', color: '#006D42', darkColor: '#34D399' },
-  { name: 'Cloud/Hosting', color: '#000000', darkColor: '#E5E7EB' },
-  { name: 'Dev Tools', color: '#4B5563', darkColor: '#9CA3AF' },
-  { name: 'Utilities', color: '#7D0015', darkColor: '#F87171' },
-  { name: 'Productivity', color: '#374151', darkColor: '#D1D5DB' },
-  { name: 'Development', color: '#1D4ED8', darkColor: '#60A5FA' },
-  { name: 'Other', color: '#9CA3AF', darkColor: '#D1D5DB' },
-]
-
-function getCategoryColor(cat: string, dark = false) {
-  const c = CATEGORIES.find(c => c.name === cat)
-  if (!c) return dark ? '#D1D5DB' : '#9CA3AF'
-  return dark ? c.darkColor : c.color
-}
 
 function monthlyEquivalent(sub: Subscription): number {
   if (sub.status !== 'active') return 0
@@ -44,6 +30,7 @@ export default function DashboardPage() {
   const { isDark } = useTheme()
   const { locale } = useLocale()
   const t = useTranslation(locale)
+  const { categories } = useCategories()
   const [subs, setSubs] = useState<Subscription[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -254,7 +241,7 @@ export default function DashboardPage() {
                   <div key={cat} className="group">
                     <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 flex-shrink-0" style={{ background: getCategoryColor(cat, isDark) }} />
+                        <span className="w-2 h-2 flex-shrink-0" style={{ background: (categories.find(c => c.name === cat)?.color ?? '#9CA3AF') }} />
                         <span className="font-label text-xs text-on-surface">{cat}</span>
                       </div>
                       <span className="font-label text-xs tabular-nums text-on-surface-variant">{val.toFixed(2)} PLN</span>
@@ -262,7 +249,7 @@ export default function DashboardPage() {
                     <div className="h-0.5 bg-surface-container-high overflow-hidden">
                       <div
                         className="h-full transition-all duration-700"
-                        style={{ width: `${pct}%`, background: getCategoryColor(cat, isDark) }}
+                        style={{ width: `${pct}%`, background: (categories.find(c => c.name === cat)?.color ?? '#9CA3AF') }}
                       />
                     </div>
                   </div>

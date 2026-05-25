@@ -30,6 +30,11 @@ export type Database = {
         Insert: Omit<Alert, 'id' | 'created_at'>
         Update: Partial<Omit<Alert, 'id' | 'created_at'>>
       }
+      user_categories: {
+        Row: UserCategory
+        Insert: Omit<UserCategory, 'id' | 'created_at'>
+        Update: Partial<Omit<UserCategory, 'id' | 'created_at'>>
+      }
     }
   }
 }
@@ -60,6 +65,14 @@ export interface Alert {
   enabled: boolean
   label: string
   description?: string
+}
+
+export interface UserCategory {
+  id: string
+  created_at: string
+  user_id: string
+  name: string
+  is_default: boolean
 }
 
 // UWAGA: Nie eksportujemy singletona - każdy komponent tworzy klienta przez getSupabaseBrowserClient()

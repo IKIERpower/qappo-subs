@@ -1,7 +1,8 @@
 'use client'
 
 import { useLocale } from '@/app/lib/LocaleContext'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { getSupabaseBrowserClient } from '@/app/lib/supabase'
 const supabase = getSupabaseBrowserClient()
 import Link from 'next/link'
@@ -9,8 +10,52 @@ import Footer from '@/app/components/Footer'
 import Navbar from '@/app/components/Navbar'
 import clsx from 'clsx'
 
+function RedirectCountdown({ locale }: { locale: string }) {
+    const router = useRouter()
+    const [seconds, setSeconds] = useState(10)
+
+    useEffect(() => {
+        if (seconds <= 0) {
+            router.replace(`/${locale}/auth/login`)
+            return
+        }
+        const timer = setTimeout(() => setSeconds(s => s - 1), 1000)
+        return () => clearTimeout(timer)
+    }, [seconds, locale, router])
+
+    return (
+        <div className="space-y-4">
+            <div className="relative w-12 h-12 mx-auto">
+                <svg className="w-12 h-12 -rotate-90" viewBox="0 0 48 48">
+                    <circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" strokeWidth="2" className="text-outline-variant/20" />
+                    <circle
+                        cx="24" cy="24" r="20" fill="none" stroke="currentColor" strokeWidth="2"
+                        className="text-primary transition-all duration-1000"
+                        strokeDasharray={`${2 * Math.PI * 20}`}
+                        strokeDashoffset={`${2 * Math.PI * 20 * (1 - seconds / 10)}`}
+                        strokeLinecap="round"
+                    />
+                </svg>
+                <span className="absolute inset-0 flex items-center justify-center font-label font-bold text-sm text-on-surface">
+          {seconds}
+        </span>
+            </div>
+            <p className="font-label text-xs text-on-surface-variant">
+                Redirecting to sign in in {seconds}s
+            </p>
+            <Link
+                href={`/${locale}/auth/login`}
+                className="inline-flex items-center gap-2 font-label text-xs uppercase tracking-widest text-on-surface-variant hover:text-on-surface transition-colors"
+            >
+                <span className="material-symbols-outlined text-[14px]">arrow_back</span>
+                Go now
+            </Link>
+        </div>
+    )
+}
+
 export default function RegisterPage() {
-  const { locale } = useLocale()
+    const { locale } = useLocale()
     const [email, setEmail] = useState('')
     const [displayName, setDisplayName] = useState('')
     const [password, setPassword] = useState('')
@@ -21,24 +66,14 @@ export default function RegisterPage() {
     const [showPass, setShowPass] = useState(false)
 
     const strength =
-        password.length === 0
-            ? 0
-            : password.length < 6
-                ? 1
-                : password.length < 10
-                    ? 2
-                    : /[A-Z]/.test(password) && /[0-9]/.test(password)
-                        ? 4
+        password.length === 0 ? 0
+            : password.length < 6 ? 1
+                : password.length < 10 ? 2
+                    : /[A-Z]/.test(password) && /[0-9]/.test(password) ? 4
                         : 3
 
     const strengthLabel = ['', 'Weak', 'Fair', 'Good', 'Strong']
-    const strengthColor = [
-        '',
-        'bg-tertiary',
-        'bg-yellow-500',
-        'bg-secondary/70',
-        'bg-secondary',
-    ]
+    const strengthColor = ['', 'bg-tertiary', 'bg-yellow-500', 'bg-secondary/70', 'bg-secondary']
 
     async function handleRegister() {
         setError(null)
@@ -72,20 +107,18 @@ export default function RegisterPage() {
         return (
             <>
                 <div className="min-h-screen bg-surface flex flex-col">
-                    <div className="p-8"><Navbar /></div>
                     <div className="flex-1 flex items-center justify-center p-8">
                         <div className="w-full max-w-[400px] text-center animate-fade-up">
                             <div className="w-12 h-12 bg-secondary flex items-center justify-center mx-auto mb-6">
                                 <span className="material-symbols-outlined text-white text-[22px]">mark_email_read</span>
                             </div>
-                            <h1 className="font-headline font-bold text-2xl tracking-tighter text-on-surface mb-2">Check your inbox</h1>
+                            <h1 className="font-headline font-bold text-2xl tracking-tighter text-on-surface mb-2">
+                                Check your inbox
+                            </h1>
                             <p className="font-label text-sm text-on-surface-variant mb-8">
                                 We sent a confirmation link to <span className="font-semibold text-on-surface">{email}</span>.
                             </p>
-                            <Link href={`/${locale}/auth/login`} className="inline-flex items-center gap-2 font-label text-xs uppercase tracking-widest text-on-surface-variant hover:text-on-surface transition-colors">
-                                <span className="material-symbols-outlined text-[14px]">arrow_back</span>
-                                Back to sign in
-                            </Link>
+                            <RedirectCountdown locale={locale} />
                         </div>
                     </div>
                 </div>
@@ -97,8 +130,6 @@ export default function RegisterPage() {
     return (
         <>
             <div className="min-h-screen bg-surface flex relative">
-
-                {/* Absolute Top Navigation Layer */}
                 <div className="absolute top-0 left-0 w-full flex items-center justify-between p-6 lg:p-8 z-10 pointer-events-none">
                     <Link href={`/${locale}`} className="lg:hidden font-headline font-bold text-md tracking-tighter text-on-surface pointer-events-auto">
                         SubManager
@@ -108,13 +139,11 @@ export default function RegisterPage() {
                     </div>
                 </div>
 
-                {/* Left panel — branding */}
                 <div className="hidden lg:flex w-[480px] min-w-[480px] bg-black flex-col justify-between p-12">
                     <Link href={`/${locale}`} className="group block">
                         <div className="font-headline font-bold text-xl tracking-tighter text-white group-hover:text-white/80 transition-colors">SubManager</div>
                         <div className="font-label text-[10px] uppercase tracking-widest text-white/40 mt-0.5 group-hover:text-white/30 transition-colors">Sub Manager by Qappo</div>
                     </Link>
-
                     <div className="space-y-8">
                         <div className="space-y-3">
                             <div className="w-12 h-0.5 bg-white/20" />
@@ -122,7 +151,6 @@ export default function RegisterPage() {
                                 "Every subscription is a decision. Know the cost of each one."
                             </blockquote>
                         </div>
-
                         <div className="space-y-3">
                             {[
                                 { label: 'Monthly Burn', value: '2,482.50 PLN', trend: '+4.2%', up: true },
@@ -135,78 +163,52 @@ export default function RegisterPage() {
                                         <span className="font-label text-sm font-bold tabular-nums text-white">{m.value}</span>
                                         {m.up !== null && (
                                             <span className={clsx('ml-2 font-label text-xs', m.up ? 'text-tertiary-container' : 'text-white/40')}>
-                                                {m.up ? '↑' : ''} {m.trend}
-                                            </span>
+                        {m.up ? '↑' : ''} {m.trend}
+                      </span>
                                         )}
                                     </div>
                                 </div>
                             ))}
                         </div>
                     </div>
-
                     <div className="font-label text-[10px] text-white/20 uppercase tracking-widest">
                         © {new Date().getFullYear()} QAPPO
                     </div>
                 </div>
 
-                {/* Right panel — form */}
                 <div className="flex-1 flex flex-col items-center justify-start lg:justify-center p-8 pt-32 lg:pt-8 w-full">
                     <div className="w-full max-w-[400px] animate-fade-up">
                         <div className="mb-8">
                             <h1 className="font-headline font-bold text-2xl tracking-tighter text-on-surface">Create account</h1>
                             <p className="font-label text-sm text-on-surface-variant mt-1">Set up your financial ledger.</p>
                         </div>
-
                         <div className="space-y-4">
                             <div>
                                 <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant block mb-2">Email Address</label>
-                                <input
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    onKeyDown={handleKey}
-                                    placeholder="you@example.com"
-                                    className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant/30 text-on-surface font-label text-sm placeholder:text-on-surface-variant focus:outline-none focus:border-primary transition-colors"
-                                />
+                                <input type="email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={handleKey} placeholder="you@example.com"
+                                       className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant/30 text-on-surface font-label text-sm placeholder:text-on-surface-variant focus:outline-none focus:border-primary transition-colors" />
                             </div>
-
                             <div>
                                 <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant block mb-2">
                                     Display Name <span className="normal-case tracking-normal text-on-surface-variant/50">(optional)</span>
                                 </label>
-                                <input
-                                    type="text"
-                                    value={displayName}
-                                    onChange={(e) => setDisplayName(e.target.value)}
-                                    onKeyDown={handleKey}
-                                    placeholder="Your name"
-                                    className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant/30 text-on-surface font-label text-sm placeholder:text-on-surface-variant focus:outline-none focus:border-primary transition-colors"
-                                />
+                                <input type="text" value={displayName} onChange={e => setDisplayName(e.target.value)} onKeyDown={handleKey} placeholder="Your name"
+                                       className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant/30 text-on-surface font-label text-sm placeholder:text-on-surface-variant focus:outline-none focus:border-primary transition-colors" />
                             </div>
-
                             <div>
                                 <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant block mb-2">Password</label>
                                 <div className="relative">
-                                    <input
-                                        type={showPass ? 'text' : 'password'}
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        onKeyDown={handleKey}
-                                        placeholder="Min. 6 characters"
-                                        className="w-full px-4 py-3 pr-12 bg-surface-container-low border border-outline-variant/30 text-on-surface font-label text-sm placeholder:text-on-surface-variant focus:outline-none focus:border-primary transition-colors"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPass((v) => !v)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-[18px] text-on-surface-variant hover:text-on-surface transition-colors"
-                                    >
+                                    <input type={showPass ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} onKeyDown={handleKey} placeholder="Min. 6 characters"
+                                           className="w-full px-4 py-3 pr-12 bg-surface-container-low border border-outline-variant/30 text-on-surface font-label text-sm placeholder:text-on-surface-variant focus:outline-none focus:border-primary transition-colors" />
+                                    <button type="button" onClick={() => setShowPass(v => !v)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-[18px] text-on-surface-variant hover:text-on-surface transition-colors">
                                         {showPass ? 'visibility_off' : 'visibility'}
                                     </button>
                                 </div>
                                 {password.length > 0 && (
                                     <div className="mt-2 flex items-center gap-2 animate-fade-in">
                                         <div className="flex-1 flex gap-1">
-                                            {[1, 2, 3, 4].map((i) => (
+                                            {[1, 2, 3, 4].map(i => (
                                                 <div key={i} className={clsx('h-0.5 flex-1 transition-all duration-300', i <= strength ? strengthColor[strength] : 'bg-outline-variant/30')} />
                                             ))}
                                         </div>
@@ -214,35 +216,22 @@ export default function RegisterPage() {
                                     </div>
                                 )}
                             </div>
-
                             <div>
                                 <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant block mb-2">Confirm Password</label>
-                                <input
-                                    type="password"
-                                    value={confirm}
-                                    onChange={(e) => setConfirm(e.target.value)}
-                                    onKeyDown={handleKey}
-                                    placeholder="Repeat password"
-                                    className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant/30 text-on-surface font-label text-sm placeholder:text-on-surface-variant focus:outline-none focus:border-primary transition-colors"
-                                />
+                                <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} onKeyDown={handleKey} placeholder="Repeat password"
+                                       className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant/30 text-on-surface font-label text-sm placeholder:text-on-surface-variant focus:outline-none focus:border-primary transition-colors" />
                             </div>
-
                             {error && (
                                 <div className="flex items-center gap-2 py-3 px-4 bg-tertiary/5 border border-tertiary/20 animate-fade-in">
                                     <span className="material-symbols-outlined text-[16px] text-tertiary">error</span>
                                     <span className="font-label text-xs text-tertiary">{error}</span>
                                 </div>
                             )}
-
-                            <button
-                                onClick={handleRegister}
-                                disabled={loading}
-                                className="w-full bg-primary text-on-primary font-label font-bold text-xs uppercase tracking-widest py-3.5 hover:bg-primary/85 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 mt-2"
-                            >
+                            <button onClick={handleRegister} disabled={loading}
+                                    className="w-full bg-primary text-on-primary font-label font-bold text-xs uppercase tracking-widest py-3.5 hover:bg-primary/85 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 mt-2">
                                 {loading ? 'Creating account...' : 'Create Account'}
                             </button>
                         </div>
-
                         <div className="mt-8 pt-6 border-t border-outline-variant/20 text-center">
                             <span className="font-label text-xs text-on-surface-variant">Already have an account? </span>
                             <Link href={`/${locale}/auth/login`} className="font-label text-xs text-on-surface font-semibold hover:underline">Sign in →</Link>

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { AuthProvider } from '@/app/lib/AuthContext'
+import { CategoriesProvider } from '@/app/lib/CategoriesContext'
 import { ThemeProvider } from '@/app/lib/ThemeContext'
 import { LocaleProvider } from '@/app/lib/LocaleContext'
 import type { Locale } from '@/app/lib/LocaleContext'
@@ -51,7 +52,9 @@ export default async function LocaleLayout({
     <LocaleProvider locale={locale as Locale}>
       <ThemeProvider>
         <AuthProvider>
-          {children}
+          <CategoriesProvider>
+            {children}
+          </CategoriesProvider>
         </AuthProvider>
       </ThemeProvider>
     </LocaleProvider>
