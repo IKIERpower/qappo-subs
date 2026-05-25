@@ -50,13 +50,13 @@ export async function GET(request: NextRequest) {
 
     if (code) {
         console.log('📝 Exchanging code for session...')
-        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+        const { error: exchangeError, data } = await supabase.auth.exchangeCodeForSession(code)
         if (!exchangeError) {
             const isRecovery = type === 'recovery' || pendingIntent === 'recovery'
-            console.log('✅ Code exchange success. isRecovery:', isRecovery)
+            console.log('✅ Code exchange success. Session established:', !!data?.session, 'isRecovery:', isRecovery)
             if (isRecovery) {
-                console.log('🔄 Redirecting to update-password')
-                const response = NextResponse.redirect(`${origin}/auth/update-password`)
+                console.log('🔄 Redirecting to update-password with recovery mode')
+                const response = NextResponse.redirect(`${origin}/auth/update-password?mode=recovery`)
                 response.cookies.set('auth_intent', 'recovery', { path: '/', maxAge: 600, httpOnly: false })
                 response.cookies.delete('pending_auth_intent')
                 return response
@@ -70,10 +70,18 @@ export async function GET(request: NextRequest) {
     if (token_hash && type) {
         console.log('🎟️ Processing token_hash for type:', type)
         if (type === 'recovery') {
-            console.log('🔄 Recovery mode - redirecting to update-password')
-            const response = NextResponse.redirect(`${origin}/auth/update-password`)
-            response.cookies.set('auth_intent', 'recovery', { path: '/', maxAge: 600, httpOnly: false })
-            return response
+            console.log('🔄 Recovery mode - using token_hash')
+            // For recovery, we need to use the token hash to establish a session
+            const { error: verifyError, data } = await supabase.auth.verifyOtp({ token_hash, type: 'recovery' })
+            if (!verifyError && data?.session) {
+                console.log('✅ Recovery session verified')
+                const response = NextResponse.redirect(`${origin}/auth/update-password?mode=recovery`)
+                response.cookies.set('auth_intent', 'recovery', { path: '/', maxAge: 600, httpOnly: false })
+                return response
+            } else {
+                console.log('❌ Recovery verification failed:', verifyError?.message)
+                return NextResponse.redirect(`${origin}/${locale}/auth/login?error=recovery_failed`)
+            }
         }
 
         const { error: verifyError } = await supabase.auth.verifyOtp({ token_hash, type: type as any })

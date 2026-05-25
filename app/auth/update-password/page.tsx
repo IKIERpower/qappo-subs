@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { getSupabaseBrowserClient } from '@/app/lib/supabase'
 const supabase = getSupabaseBrowserClient()
 import Link from 'next/link'
@@ -15,6 +15,7 @@ function getLocaleFromCookie(): string {
 
 export default function UpdatePasswordPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [locale, setLocale] = useState('pl')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -29,25 +30,39 @@ export default function UpdatePasswordPage() {
 
     async function checkSession() {
       try {
+        // Check if URL has recovery parameter
+        const isRecoveryParam = searchParams.get('mode') === 'recovery'
+        
+        // Get current session from Supabase
+        const { data: { session } } = await supabase.auth.getSession()
         const { data: { user } } = await supabase.auth.getUser()
-        const isRecovery = document.cookie.includes('auth_intent=recovery')
-        const hasActiveSession = !!user
-
-        if (hasActiveSession || isRecovery) {
+        
+        console.log('🔐 Password update - Session:', !!session, 'User:', !!user, 'RecoveryParam:', isRecoveryParam)
+        
+        // Allow password update if:
+        // 1. There's an active session (recovery or regular), OR
+        // 2. URL has recovery parameter AND there's a user
+        if ((session && user) || (isRecoveryParam && user)) {
           setHasRecoverySession(true)
+          console.log('✅ Valid session found for password update')
         } else {
+          console.log('❌ No valid session for password update')
           const loc = getLocaleFromCookie()
           router.replace(`/${loc}/auth/login`)
         }
-      } catch {
+      } catch (err) {
+        console.error('Error checking session:', err)
         const loc = getLocaleFromCookie()
         router.replace(`/${loc}/auth/login`)
       } finally {
         setCheckingSession(false)
       }
     }
-    checkSession()
-  }, [router])
+    
+    // Small delay to ensure cookies are properly loaded
+    const timer = setTimeout(checkSession, 100)
+    return () => clearTimeout(timer)
+  }, [router, searchParams])
 
   async function handleUpdate() {
     setError('')
@@ -79,10 +94,21 @@ export default function UpdatePasswordPage() {
     return (
       <div className="min-h-screen bg-surface flex items-center justify-center p-8">
         <div className="w-full max-w-[400px] text-center">
-          <p className="text-on-surface-variant">
-            {locale === 'en' ? 'No active recovery session.' : 'Brak aktywnej sesji odzyskiwania.'}
+          <div className="flex items-center gap-3 mb-4 p-4 bg-tertiary/5 border border-tertiary/20">
+            <span className="material-symbols-outlined text-tertiary">error</span>
+            <p className="text-on-surface-variant text-sm">
+              {locale === 'en' ? 'Auth session missing!' : 'Brak sesji autoryzacji!'}
+            </p>
+          </div>
+          <p className="text-on-surface-variant text-xs mb-4">
+            {locale === 'en' 
+              ? 'Please request a new password reset link.' 
+              : 'Prosimy poprosić o nowy link resetowania hasła.'}
           </p>
-          <Link href={`/${locale}/auth/login`} className="text-primary hover:underline mt-4 inline-block">
+          <Link href={`/${locale}/auth/reset`} className="text-primary hover:underline block mb-2">
+            {locale === 'en' ? 'Reset Password Again' : 'Zresetuj hasło ponownie'}
+          </Link>
+          <Link href={`/${locale}/auth/login`} className="text-primary hover:underline">
             {locale === 'en' ? 'Back to login' : 'Powrót do logowania'}
           </Link>
         </div>
