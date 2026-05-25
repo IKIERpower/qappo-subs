@@ -17,7 +17,7 @@ interface SubscriptionFormProps {
 
 export default function SubscriptionForm({ initial, id }: SubscriptionFormProps) {
   const router = useRouter()
-  const { categoryNames } = useCategories()
+  const { categories } = useCategories()
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [customCurrency, setCustomCurrency] = useState(!CURRENCIES.includes(initial?.currency ?? 'PLN'))
@@ -191,12 +191,13 @@ export default function SubscriptionForm({ initial, id }: SubscriptionFormProps)
 
            {/* Category + Billing Cycle */}
            <div className="grid grid-cols-2 gap-4">
-             <div>
-               <label className={labelClass}>Category</label>
-               <select value={form.category} onChange={e => set('category', e.target.value)} className={inputClass('category')}>
-                 {[...categoryNames, 'Other'].map(c => <option key={c} value={c}>{c}</option>)}
-               </select>
-             </div>
+              <div>
+                <label className={labelClass}>Category</label>
+                <select value={form.category} onChange={e => set('category', e.target.value)} className={inputClass('category')}>
+                  {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                  <option value="Other">Other</option>
+                </select>
+              </div>
              <div>
                <label className={labelClass}>Billing Cycle</label>
                <select value={form.billing_cycle} onChange={e => set('billing_cycle', e.target.value)} className={inputClass('billing_cycle')}>
