@@ -104,9 +104,9 @@ export default function SettingsPage() {
     setPasswordSuccess(false)
     if (!user?.email) return
     setSavingPassword(true)
-    const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
-      redirectTo: `${window.location.origin}/auth/callback?type=recovery`,
-    })
+      const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+          redirectTo: `${window.location.origin}/auth/callback?type=recovery`
+      })
     setSavingPassword(false)
     if (error) {
       setPasswordError(error.message)

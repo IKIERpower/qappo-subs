@@ -160,11 +160,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         if (!initialized || loading) return
+
+        // Jeśli to sesja recovery (reset hasła) — nie redirectuj, zostaw na update-password
+        const isRecoveryIntent = document.cookie.includes('auth_intent=recovery')
+        const isOnUpdatePassword = pathname.includes('update-password')
+        
+        if (isRecoveryIntent && isOnUpdatePassword) return
+
         if (!user && !isPublicPath(pathname)) {
             const locale = getLocaleFromPathname(pathname)
             router.replace(`/${locale}/auth/login`)
         }
     }, [initialized, loading, user, pathname, router])
+
 
     async function setDisplayName(name: string) {
         if (!user) return
@@ -179,11 +187,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async function signOut() {
         const locale = getLocaleFromPathname(pathname)
         localStorage.removeItem(LAST_ACTIVE_KEY)
+        document.cookie = 'auth_intent=; path=/; max-age=0'
         await supabase.auth.signOut()
         setDisplayNameState('')
         displayNameLoadedRef.current = false
         router.replace(`/${locale}`)
     }
+
 
     const value = useMemo(
         () => ({ user, session, loading, displayName, setDisplayName, signOut }),

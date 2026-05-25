@@ -1,30 +1,59 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabaseBrowserClient } from '@/app/lib/supabase'
 const supabase = getSupabaseBrowserClient()
-import { useLocale } from '@/app/lib/LocaleContext'
-import { useTranslation } from '@/app/lib/translations'
 import Link from 'next/link'
 import Footer from '@/app/components/Footer'
 
+function getLocaleFromCookie(): string {
+  if (typeof document === 'undefined') return 'pl'
+  const match = document.cookie.match(/NEXT_LOCALE=([^;]+)/)
+  return match ? match[1] : 'pl'
+}
+
 export default function UpdatePasswordPage() {
   const router = useRouter()
-  const { locale } = useLocale()
-  const t = useTranslation(locale)
-
+  const [locale, setLocale] = useState('pl')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [hasRecoverySession, setHasRecoverySession] = useState(false)
+  const [checkingSession, setCheckingSession] = useState(true)
+
+  useEffect(() => {
+    setLocale(getLocaleFromCookie())
+
+    async function checkSession() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        const isRecovery = document.cookie.includes('auth_intent=recovery')
+        const hasActiveSession = !!user
+
+        if (hasActiveSession || isRecovery) {
+          setHasRecoverySession(true)
+        } else {
+          const loc = getLocaleFromCookie()
+          router.replace(`/${loc}/auth/login`)
+        }
+      } catch {
+        const loc = getLocaleFromCookie()
+        router.replace(`/${loc}/auth/login`)
+      } finally {
+        setCheckingSession(false)
+      }
+    }
+    checkSession()
+  }, [router])
 
   async function handleUpdate() {
     setError('')
-    if (!newPassword) { setError(t.passwordRequired); return }
-    if (newPassword.length < 6) { setError(t.passwordMinLength); return }
-    if (newPassword !== confirmPassword) { setError(t.passwordMismatch); return }
+    if (!newPassword) { setError(locale === 'en' ? 'Password is required.' : 'Hasło jest wymagane.'); return }
+    if (newPassword.length < 6) { setError(locale === 'en' ? 'Password must be at least 6 characters.' : 'Hasło musi mieć min. 6 znaków.'); return }
+    if (newPassword !== confirmPassword) { setError(locale === 'en' ? 'Passwords do not match.' : 'Hasła nie są zgodne.'); return }
 
     setLoading(true)
     const { error: updateError } = await supabase.auth.updateUser({ password: newPassword })
@@ -33,8 +62,32 @@ export default function UpdatePasswordPage() {
     if (updateError) {
       setError(updateError.message)
     } else {
+      document.cookie = 'auth_intent=; path=/; max-age=0'
       setSuccess(true)
     }
+  }
+
+  if (checkingSession) {
+    return (
+      <div className="min-h-screen bg-surface flex items-center justify-center">
+        <div className="w-12 h-12 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (!hasRecoverySession) {
+    return (
+      <div className="min-h-screen bg-surface flex items-center justify-center p-8">
+        <div className="w-full max-w-[400px] text-center">
+          <p className="text-on-surface-variant">
+            {locale === 'en' ? 'No active recovery session.' : 'Brak aktywnej sesji odzyskiwania.'}
+          </p>
+          <Link href={`/${locale}/auth/login`} className="text-primary hover:underline mt-4 inline-block">
+            {locale === 'en' ? 'Back to login' : 'Powrót do logowania'}
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   if (success) {
@@ -46,18 +99,16 @@ export default function UpdatePasswordPage() {
               <span className="material-symbols-outlined text-white text-[22px]">check_circle</span>
             </div>
             <h1 className="font-headline font-bold text-2xl tracking-tighter text-on-surface mb-2">
-              {locale === 'en' ? 'Your password has been updated successfully.' : 'Twoje hasło zostało pomyślnie zaktualizowane.'}
+              {locale === 'en' ? 'Password updated!' : 'Hasło zaktualizowane!'}
             </h1>
             <p className="font-label text-sm text-on-surface-variant mb-8">
-              {locale === 'en'
-                ? 'You can now sign in with your new password.'
-                : 'Możesz teraz zalogować się nowym hasłem.'}
+              {locale === 'en' ? 'You can now sign in with your new password.' : 'Możesz teraz zalogować się nowym hasłem.'}
             </p>
             <button
-              onClick={() => router.replace('/settings')}
+              onClick={() => router.replace(`/${locale}/auth/login`)}
               className="w-full bg-primary text-on-primary font-label font-bold text-xs uppercase tracking-widest py-3.5 hover:opacity-80 transition-opacity"
             >
-              {locale === 'en' ? 'Go to Settings' : 'Przejdź do ustawień'}
+              {locale === 'en' ? 'Go to Login' : 'Przejdź do logowania'}
             </button>
           </div>
         </div>
@@ -70,29 +121,19 @@ export default function UpdatePasswordPage() {
     <>
       <div className="min-h-screen bg-surface flex items-center justify-center p-8">
         <div className="w-full max-w-[400px] animate-fade-up">
-          <Link
-            href={`/${locale}/settings`}
-            className="inline-flex items-center gap-1 font-label text-xs uppercase tracking-widest text-on-surface-variant hover:text-on-surface transition-colors mb-10"
-          >
-            <span className="material-symbols-outlined text-[14px]">arrow_back</span>
-            {t.back}
-          </Link>
-
           <div className="mb-8">
             <h1 className="font-headline font-bold text-2xl tracking-tighter text-on-surface">
               {locale === 'en' ? 'Set New Password' : 'Ustaw nowe hasło'}
             </h1>
             <p className="font-label text-sm text-on-surface-variant mt-1">
-              {locale === 'en'
-                ? 'Enter your new password below.'
-                : 'Wpisz poniżej swoje nowe hasło.'}
+              {locale === 'en' ? 'Enter your new password below.' : 'Wpisz poniżej swoje nowe hasło.'}
             </p>
           </div>
 
           <div className="space-y-4">
             <div>
               <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant block mb-2">
-                {t.newPassword}
+                {locale === 'en' ? 'New Password' : 'Nowe hasło'}
               </label>
               <input
                 type="password"
@@ -106,15 +147,15 @@ export default function UpdatePasswordPage() {
 
             <div>
               <label className="font-label text-[10px] uppercase tracking-widest text-on-surface-variant block mb-2">
-                {t.confirmPassword}
+                {locale === 'en' ? 'Confirm Password' : 'Potwierdź hasło'}
               </label>
               <input
                 type="password"
                 value={confirmPassword}
                 onChange={e => { setConfirmPassword(e.target.value); setError('') }}
                 placeholder="••••••••"
-                className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant/30 text-on-surface font-label text-sm placeholder:text-on-surface-variant focus:outline-none focus:border-primary transition-colors"
                 onKeyDown={e => e.key === 'Enter' && handleUpdate()}
+                className="w-full px-4 py-3 bg-surface-container-low border border-outline-variant/30 text-on-surface font-label text-sm placeholder:text-on-surface-variant focus:outline-none focus:border-primary transition-colors"
               />
             </div>
 
